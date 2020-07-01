@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import com.duke.elliot.kim.kotlin.creator_editerbrokerageapplication.R
 
 class PRListFragment : Fragment() {
+    
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
