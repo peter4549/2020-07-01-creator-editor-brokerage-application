@@ -8,7 +8,6 @@ import com.duke.elliot.kim.kotlin.creator_editerbrokerageapplication.adapters.Pa
 class MainActivity : FragmentActivity() {
 
     private lateinit var pager: ViewPager2
-    
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
