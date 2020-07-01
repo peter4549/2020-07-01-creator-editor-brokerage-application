@@ -13,7 +13,7 @@ class PagerFragmentStateAdapter(fragmentActivity: FragmentActivity)
     : FragmentStateAdapter(fragmentActivity) {
 
     override fun getItemCount(): Int {
-        TODO("Not yet implemented")
+        
     }
 
     override fun createFragment(position: Int): Fragment {
