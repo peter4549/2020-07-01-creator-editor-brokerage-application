@@ -8,13 +8,13 @@ import android.view.ViewGroup
 
 import com.duke.elliot.kim.kotlin.creator_editerbrokerageapplication.R
 
-class WritingFragment : Fragment() {
+class MyInfoFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_writing, container, false)
+        return inflater.inflate(R.layout.fragment_my_info, container, false)
     }
 
 }
