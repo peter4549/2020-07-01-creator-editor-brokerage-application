@@ -3,6 +3,7 @@ package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activiti
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -16,6 +17,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.LoginFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.setColorFilter
+import com.facebook.CallbackManager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.android.synthetic.main.activity_main.*
@@ -23,6 +25,8 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
 class MainActivity : FragmentActivity() {
+
+    val callbackManager = CallbackManager.Factory.create()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +67,11 @@ class MainActivity : FragmentActivity() {
             }
 
         })
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        callbackManager.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onBackPressed() {

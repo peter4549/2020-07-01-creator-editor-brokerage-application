@@ -4,4 +4,5 @@ class User(private var name: String) {
     private var area: String? = null
     private var age: Int? = null
     private var gender: Int? = null
+    private var phoneNumber: String? = null
 }

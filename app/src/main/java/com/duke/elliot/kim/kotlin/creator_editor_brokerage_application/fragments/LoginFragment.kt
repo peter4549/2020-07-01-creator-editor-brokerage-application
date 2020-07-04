@@ -9,7 +9,6 @@ import android.view.ViewGroup
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
-import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginBehavior
@@ -29,8 +28,6 @@ import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
 
-    private val callbackManager = CallbackManager.Factory.create()
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -45,7 +42,7 @@ class LoginFragment : Fragment() {
                 .startFragment(SignUpFragment(), R.id.login_fragment_container_view) }
 
         button_login_with_google.setOnClickListener {
-            loginWithGoogle()
+            CoroutineScope(Dispatchers.IO).launch { loginWithGoogle() }
         }
 
         button_login_with_facebook.setOnClickListener {
@@ -55,8 +52,6 @@ class LoginFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        callbackManager.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == SignUpFragment.REQUEST_CODE_SIGN_IN) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
@@ -80,23 +75,12 @@ class LoginFragment : Fragment() {
         val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
-            if (task.isSuccessful) {
+            if (task.isSuccessful)
                 (activity as MainActivity).popAllFragments()
-            }
-        }
-    }
-
-    private fun firebaseAuthWithFacebook(result: LoginResult?) {
-        val credential = FacebookAuthProvider.getCredential(result?.accessToken?.token!!)
-        FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
-                task ->
-            if (task.isSuccessful) {
-                (activity as MainActivity).popAllFragments()
-            } else {
+            else
                 CoroutineScope(Dispatchers.Main).launch {
-                    (activity as MainActivity).showToast("SOMEPROB")
+                    (activity as MainActivity).showToast("구글 인증에 실패했습니다.")
                 }
-            }
         }
     }
 
@@ -104,23 +88,35 @@ class LoginFragment : Fragment() {
         LoginManager.getInstance().loginBehavior = LoginBehavior.WEB_VIEW_ONLY
         LoginManager.getInstance()
             .logInWithReadPermissions(requireActivity(), listOf("public_profile", "email"))
-        LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+        LoginManager.getInstance().registerCallback((activity as MainActivity).callbackManager, object : FacebookCallback<LoginResult> {
             override fun onSuccess(result: LoginResult?) {
-                (activity as MainActivity).showToast("INSUCE")
-                println("SEXPARTY")
                 firebaseAuthWithFacebook(result)
             }
 
             override fun onCancel() {
-                (activity as MainActivity).showToast("CANCAN")
+
             }
 
             override fun onError(error: FacebookException?) {
-                (activity as MainActivity).showToast("ERROR")
-                println("SEXPARTY2")
-                println(error)
+                CoroutineScope(Dispatchers.Main).launch {
+                    (activity as MainActivity).showToast("페이스북 로그인에 실패했습니다.")
+                }
             }
 
         })
+    }
+
+    private fun firebaseAuthWithFacebook(result: LoginResult?) {
+        val credential = FacebookAuthProvider.getCredential(result?.accessToken?.token!!)
+        FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
+                task ->
+            if (task.isSuccessful)
+                (activity as MainActivity).popAllFragments()
+            else {
+                CoroutineScope(Dispatchers.Main).launch {
+                    (activity as MainActivity).showToast("페이스북 인증에 실패했습니다.")
+                }
+            }
+        }
     }
 }
