@@ -1,4 +1,4 @@
-package com.duke.elliot.kim.kotlin.creator_editerbrokerageapplication.model
+package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model
 
 class User(private var name: String) {
     private var area: String? = null

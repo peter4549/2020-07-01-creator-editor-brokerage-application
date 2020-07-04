@@ -1,4 +1,4 @@
-package com.duke.elliot.kim.kotlin.creator_editerbrokerageapplication
+package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

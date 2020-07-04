@@ -1,6 +1,14 @@
 <resources>
-    <string name="app_name">Creator-Editer Brokerage Application</string>
+    <string name="app_name">Creator-Editor Brokerage Application</string>
+    <string name="facebook_app_id">871598669995139</string>
+    <string name="fb_login_protocol_scheme">fb871598669995139</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="start_with_google">구글로 시작하기</string>
+    <string name="start_with_facebook">페이스북으로 시작히기</string>
+    <string name="start_with_twitter">트위터로 시작하기</string>
+    <string name="start_with_email">이메일로 시작하기</string>
+    <string name="sign_up_with_email">이메일로 가입하기</string>
+    <string name="id">아이디</string>
+    <string name="password">비밀번호</string>
+    <string name="sign_in">가입하기</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.duke.elliot.kim.kotlin.creator_editerbrokerageapplication
+package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application
 
 import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
