@@ -3,6 +3,7 @@
     package="com.duke.elliot.kim.kotlin.creator_editor_brokerage_application">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
     <application
         android:allowBackup="true"
@@ -37,6 +38,14 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name=".broadcast_receiver.SmsReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

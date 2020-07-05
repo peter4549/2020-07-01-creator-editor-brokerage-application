@@ -1,5 +1,7 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.telephony.PhoneNumberUtils
@@ -11,6 +13,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.broadcast_receiver.SmsReceiver
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
@@ -22,8 +25,11 @@ import java.util.concurrent.TimeUnit
 
 class PhoneAuthFragment : Fragment() {
 
+    //private val smsReceiver = SmsReceiver()
     private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     private var smsCode: String? = null
+
+    private var verificationId: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,14 +45,13 @@ class PhoneAuthFragment : Fragment() {
 
 
         button_send_code.setOnClickListener {
+            setUpCallbacks()
             sendCode()
         }
 
     }
 
     private fun sendCode() {
-        setUpCallbacks()
-
         PhoneAuthProvider.getInstance().verifyPhoneNumber(
             "+821043352595",
             60,
@@ -58,14 +63,38 @@ class PhoneAuthFragment : Fragment() {
         )
     }
 
+    private fun verifyCode(code: String) {
+        val credential = PhoneAuthProvider.getCredential(verificationId, code)
+
+        FirebaseAuth.getInstance()
+        // signInWithCredential(credential)
+
+        FirebaseAuth.getInstance().currentUser?.linkWithCredential(credential)?.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                println("THISISNICEACT")
+            }
+        }
+    }
+
+    private fun signInWithCredential(credential: PhoneAuthCredential) {
+        FirebaseAuth.getInstance().signInWithCredential(credential)
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    println("CURUSER ::" + FirebaseAuth.getInstance().currentUser)
+                } else {
+
+                }
+            }
+    }
+
     private fun setUpCallbacks() {
         callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(p0: PhoneAuthCredential) {
-                (activity as MainActivity).showToast("인증번호가 발송되었습니다.")
-
-                // 번호인증 절차. 여기서 수신한 코드와 아이디 등을 이용하여 인증절차 제작할 것.
-                smsCode = p0.smsCode
-
+                val code = p0.smsCode
+                if (code != null) {
+                    verifyCode(code)
+                }
+                // smsCode = p0.smsCode
             }
 
             override fun onVerificationFailed(p0: FirebaseException) {
@@ -75,13 +104,16 @@ class PhoneAuthFragment : Fragment() {
 
             override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(p0, p1)
-                // println("VERID " + p0)
+                (activity as MainActivity).showToast("인증번호가 발송되었습니다.")
+                verificationId = p0
+                println("WHATISTOKEN:" + p1)
             }
+
         }
     }
 
     companion object {
         // ISO 3166-1 two letters country code
-        const val COUNTRY_CODE = "KR"
+        const val COUNTRY_CODE = "KR"  // 국가별 string value로 처리할 것.
     }
 }

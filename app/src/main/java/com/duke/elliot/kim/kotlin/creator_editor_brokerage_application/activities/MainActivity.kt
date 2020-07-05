@@ -1,22 +1,20 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities
 
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.Mode
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.LoginFragment
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.setColorFilter
 import com.facebook.CallbackManager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -26,13 +24,19 @@ import java.security.NoSuchAlgorithmException
 
 class MainActivity : FragmentActivity() {
 
-    val callbackManager = CallbackManager.Factory.create()
+    val callbackManager: CallbackManager? = CallbackManager.Factory.create()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        printHashKey(this)
+        val permissionsRequired = getPermissionsRequired(this)
+        if (permissionsRequired.isNotEmpty()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                requestPermissions(permissionsRequired, PERMISSIONS_REQUEST_CODE)
+        }
+
+        // printHashKey(this)
 
         view_pager.adapter = PagerFragmentStateAdapter(this)
 
@@ -71,7 +75,21 @@ class MainActivity : FragmentActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        callbackManager.onActivityResult(requestCode, resultCode, data)
+        callbackManager?.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSIONS_REQUEST_CODE) {
+            if (PackageManager.PERMISSION_GRANTED == grantResults.firstOrNull()) {
+                if (hasReceiveSMSPermissions(this))
+                    println("$TAG: SMS receive permission granted.")
+            } else {
+                if (!hasReceiveSMSPermissions(this))
+                    showToast("SMS 수신 권한을 승인하셔야 본인인증을 진행하실 수 있습니다.")
+            }
+        }
     }
 
     override fun onBackPressed() {
@@ -128,6 +146,7 @@ class MainActivity : FragmentActivity() {
         Toast.makeText(this, text, duration).show()
     }
 
+    /*
     @SuppressLint("PackageManagerGetSignatures")
     private fun printHashKey(context: Context) {
         try {
@@ -146,8 +165,10 @@ class MainActivity : FragmentActivity() {
             println("printHashKey() $e")
         }
     }
+     */
 
     companion object {
+        const val TAG = "MainActivity"
         const val LOGIN_FRAGMENT_TAG = "login_fragment_tag"
 
         private val tabIcons = arrayOf(
