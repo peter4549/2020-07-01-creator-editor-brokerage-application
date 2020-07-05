@@ -5,6 +5,9 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.telephony.PhoneNumberUtils
+import android.telephony.SmsManager
+import android.telephony.SmsMessage
+import android.telephony.TelephonyManager
 import android.text.TextUtils
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,14 +23,20 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import kotlinx.android.synthetic.main.fragment_phone_auth.*
 import kotlinx.android.synthetic.main.fragment_sign_up.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 
-class PhoneAuthFragment : Fragment() {
+class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
 
-    //private val smsReceiver = SmsReceiver()
+    private val filter = IntentFilter()
+    private val smsReceiver = SmsReceiver()
+    private val timeout = 60L
     private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
-    private var smsCode: String? = null
+    private var code: String? = null
 
     private var verificationId: String = ""
 
@@ -35,8 +44,9 @@ class PhoneAuthFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        filter.addAction("android.provider.Telephony.SMS_RECEIVED")
+        smsReceiver.setListener(this@PhoneAuthFragment)
 
-        println("THISTHIS" + PhoneNumberUtils.formatNumberToE164("01043352595", COUNTRY_CODE))
         return inflater.inflate(R.layout.fragment_phone_auth, container, false)
     }
 
@@ -48,72 +58,77 @@ class PhoneAuthFragment : Fragment() {
             setUpCallbacks()
             sendCode()
         }
-
     }
 
-    private fun sendCode() {
-        PhoneAuthProvider.getInstance().verifyPhoneNumber(
-            "+821043352595",
-            60,
-            TimeUnit.SECONDS,
-            requireActivity(),
-            callbacks
-
-            // PhoneNumberUtils.formatNumberToE164("01043352595", COUNTRY_CODE),
-        )
-    }
-
-    private fun verifyCode(code: String) {
-        val credential = PhoneAuthProvider.getCredential(verificationId, code)
-
-        FirebaseAuth.getInstance()
-        // signInWithCredential(credential)
-
-        FirebaseAuth.getInstance().currentUser?.linkWithCredential(credential)?.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                println("THISISNICEACT")
-            }
+    override fun onVerifyCode(code: String) {
+        if (this.code == code) {
+            (activity as MainActivity).showToast("인증되었습니다.")
+            // 유저의 인증정보 업데이트..
         }
     }
 
-    private fun signInWithCredential(credential: PhoneAuthCredential) {
-        FirebaseAuth.getInstance().signInWithCredential(credential)
-            .addOnCompleteListener {
-                if (it.isSuccessful) {
-                    println("CURUSER ::" + FirebaseAuth.getInstance().currentUser)
-                } else {
+    private fun sendCode() {
+        CoroutineScope(Dispatchers.IO).launch {
+            PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                "+821043352595",
+                timeout,
+                TimeUnit.SECONDS,
+                requireActivity(),
+                callbacks
 
-                }
+                // PhoneNumberUtils.formatNumberToE164("01043352595", COUNTRY_CODE),
+            )
+
+            delay(timeout * 1000)
+
+            if (isSmsReceiverRegistered) {
+                requireContext().unregisterReceiver(smsReceiver)
+                isSmsReceiverRegistered = false
             }
+        }
     }
 
     private fun setUpCallbacks() {
         callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(p0: PhoneAuthCredential) {
-                val code = p0.smsCode
-                if (code != null) {
-                    verifyCode(code)
-                }
+                code = p0.smsCode
                 // smsCode = p0.smsCode
+
+
+                //
             }
 
             override fun onVerificationFailed(p0: FirebaseException) {
                 (activity as MainActivity).showToast("인증에 실패했습니다.")
-                println("ERROR::" + p0.message)
+                println("$TAG: ${p0.message}")
+
+                if (isSmsReceiverRegistered) {
+                    requireContext().unregisterReceiver(smsReceiver)
+                    isSmsReceiverRegistered = false
+                }
             }
 
             override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(p0, p1)
+
+                if (!isSmsReceiverRegistered) {
+                    requireContext().registerReceiver(smsReceiver, filter)
+                    isSmsReceiverRegistered = true
+                }
+
                 (activity as MainActivity).showToast("인증번호가 발송되었습니다.")
                 verificationId = p0
-                println("WHATISTOKEN:" + p1)
             }
 
         }
     }
 
     companion object {
+        const val TAG = "PhoneAutoFragment"
+
         // ISO 3166-1 two letters country code
         const val COUNTRY_CODE = "KR"  // 국가별 string value로 처리할 것.
+
+        var isSmsReceiverRegistered = false
     }
 }
