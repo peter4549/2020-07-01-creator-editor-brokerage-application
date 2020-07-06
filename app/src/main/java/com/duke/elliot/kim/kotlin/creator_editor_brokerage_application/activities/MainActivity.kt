@@ -18,9 +18,8 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 import com.facebook.CallbackManager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 
 class MainActivity : FragmentActivity() {
 
@@ -64,8 +63,8 @@ class MainActivity : FragmentActivity() {
                     ContextCompat.getColor(
                         this@MainActivity, R.color.colorTabIconSelected), Mode.SRC_IN)
                 if (tab?.text == "내정보") {
-                    // 로그인 여부 확인 조건문 추가.
-                    requestLogin()
+                    if (FirebaseAuth.getInstance().currentUser == null)
+                        requestLogin()
                 }
 
             }

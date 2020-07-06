@@ -6,14 +6,34 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:textViewStyle">@style/TextViewFontStyle</item>
+        <item name="android:buttonStyle">@style/ButtonFontStyle</item>
+        <item name="android:editTextStyle">@style/EditTextFontStyle</item>
     </style>
 
     <style name="LoginButtonTheme">
-        <item name="android:layout_width">180dp</item>
-        <item name="android:layout_height">60dp</item>
+        <item name="android:layout_width">280dp</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:elevation">10dp</item>
         <item name="android:gravity">center</item>
-        <item name="android:textSize">24sp</item>
+        <item name="android:paddingEnd">@dimen/padding_large</item>
+        <item name="android:paddingStart">@dimen/padding_large</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Font style -->
+    <style name="TextViewFontStyle" parent="@android:style/Widget.DeviceDefault.TextView">
+        <item name="android:fontFamily">@font/nanum_gothic_font_family</item>
+    </style>
+
+    <style name="ButtonFontStyle" parent="@android:style/Widget.DeviceDefault.Button.Borderless">
+        <item name="android:fontFamily">@font/nanum_gothic_font_family</item>
+    </style>
+
+    <style name="EditTextFontStyle" parent="@android:style/Widget.DeviceDefault.EditText">
+        <item name="android:fontFamily">@font/nanum_gothic_font_family</item>
     </style>
 
 </resources>

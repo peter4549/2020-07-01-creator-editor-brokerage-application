@@ -4,13 +4,123 @@
     android:id="@+id/my_info_fragment_container_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context=".fragments.MyInfoFragment">
 
-    <Button
-        android:id="@+id/button_verification"
-        android:layout_width="160dp"
-        android:layout_height="50dp"
-        android:text="본인인증"/>
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"/>
 
+    <LinearLayout
+        android:id="@+id/linear_layout_fragment_my_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp">
+
+            <ImageView
+                android:id="@+id/image_view_profile_picture"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:contentDescription="@string/profile_picture" />
+
+            <EditText
+                android:id="@+id/edit_text_name"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical"
+                android:hint="이름"
+                android:textColor="@android:color/black"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/button_verification"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="본인인증"/>
+
+        <EditText
+            android:id="@+id/edit_text_phone_number"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="휴대폰 번호"
+            android:inputType="numberDecimal"
+            android:textColor="@android:color/black"/>
+
+        <EditText
+            android:id="@+id/edit_text_age"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="나이"
+            android:inputType="numberDecimal"
+            android:textColor="@android:color/black"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.4"
+                android:gravity="center"
+                android:text="성별"/>
+
+            <RadioGroup
+                android:id="@+id/radio_group_gender"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.6"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radio_button_male"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layoutDirection="rtl"
+                    android:gravity="center"
+                    android:text="남"/>
+
+                <RadioButton
+                    android:id="@+id/radio_button_female"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layoutDirection="rtl"
+                    android:gravity="center"
+                    android:text="여"/>
+
+            </RadioGroup>
+
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/edit_text_pr"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="PR"
+            android:gravity="top"
+            android:padding="@dimen/padding_middle"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/button_save_data"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="저장"/>
+
+        <Button
+            android:id="@+id/button_logout"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="로그아웃"/>
+
+    </LinearLayout>
 
 </FrameLayout>

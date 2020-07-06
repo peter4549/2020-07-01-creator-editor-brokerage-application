@@ -41,6 +41,10 @@ class LoginFragment : Fragment() {
             (activity as MainActivity)
                 .startFragment(SignUpFragment(), R.id.login_fragment_container_view) }
 
+        button_login_with_email.setOnClickListener {
+            CoroutineScope(Dispatchers.IO).launch { loginWithEmail() }
+        }
+
         button_login_with_google.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch { loginWithGoogle() }
         }
@@ -58,6 +62,21 @@ class LoginFragment : Fragment() {
             val account = task.getResult(ApiException::class.java)
             firebaseAuthWithGoogle(account)
         }
+    }
+
+    private fun loginWithEmail() {
+        val email = edit_text_id.text.toString()
+        val password = edit_text_password.text.toString()
+
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful)
+                    (activity as MainActivity).popAllFragments()
+                else
+                    CoroutineScope(Dispatchers.Main).launch {
+                        (activity as MainActivity).showToast("이메일 로그인에 실패했습니다.")
+                    }
+            }
     }
 
     private fun loginWithGoogle() {

@@ -4,9 +4,18 @@
     android:id="@+id/login_fragment_container_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black"
+    android:background="@android:color/white"
     android:focusable="true"
     tools:context=".fragments.LoginFragment">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"
+        android:text="Login"
+        android:textSize="36sp"
+        android:textStyle="bold"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -14,28 +23,60 @@
         android:layout_gravity="center"
         android:orientation="vertical">
 
+        <EditText
+            android:id="@+id/edit_text_id"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_margin="6dp"
+            android:autofillHints="id"
+            android:hint="@string/id"
+            android:inputType="text"
+            android:padding="@dimen/padding_small"
+            android:textColor="@android:color/black"/>
+
+        <EditText
+            android:id="@+id/edit_text_password"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_margin="6dp"
+            android:autofillHints="password"
+            android:hint="@string/password"
+            android:inputType="textPassword"
+            android:padding="@dimen/padding_small"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/button_login_with_email"
+            style="@style/LoginButtonTheme"
+            android:layout_marginTop="@dimen/padding_middle"
+            android:background="@color/backgroundColorRed"
+            android:drawableStart="@drawable/ic_login_28dp"
+            android:text="@string/login" />
+
+        <Button
+            android:id="@+id/button_sign_up_with_email"
+            style="@style/LoginButtonTheme"
+            android:layout_marginTop="@dimen/padding_middle_small"
+            android:background="@color/backgroundColorRed"
+            android:drawableStart="@drawable/ic_email_sign_up_28dp"
+            android:text="@string/sign_up_with_email" />
+
         <Button
             android:id="@+id/button_login_with_google"
             style="@style/LoginButtonTheme"
+            android:background="@android:color/white"
+            android:drawableStart="@drawable/ic_google_login_28dp"
+            android:layout_marginTop="60dp"
             android:text="@string/start_with_google" />
 
         <Button
             android:id="@+id/button_login_with_facebook"
             style="@style/LoginButtonTheme"
-            android:layout_marginTop="4dp"
-            android:text="@string/start_with_facebook" />
-
-        <Button
-            android:id="@+id/button_login_with_email"
-            android:layout_marginTop="4dp"
-            style="@style/LoginButtonTheme"
-            android:text="@string/start_with_email" />
-
-        <Button
-            android:id="@+id/button_sign_up_with_email"
-            android:layout_marginTop="32dp"
-            style="@style/LoginButtonTheme"
-            android:text="@string/sign_up_with_email" />
+            android:layout_marginTop="@dimen/padding_middle_small"
+            android:background="@color/colorFacebook"
+            android:drawableStart="@drawable/ic_facebook_login_28dp"
+            android:text="@string/start_with_facebook"
+            android:textColor="@android:color/white"/>
 
     </LinearLayout>
 
