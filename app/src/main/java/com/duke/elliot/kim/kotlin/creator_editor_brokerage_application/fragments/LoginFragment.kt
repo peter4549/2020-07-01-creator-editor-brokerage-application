@@ -71,7 +71,7 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
-                    (activity as MainActivity).popAllFragments()
+                    (activity as MainActivity).actionAfterLogin(task.result?.user)
                 else
                     CoroutineScope(Dispatchers.Main).launch {
                         (activity as MainActivity).showToast("이메일 로그인에 실패했습니다.")
@@ -95,7 +95,7 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
-                (activity as MainActivity).popAllFragments()
+                (activity as MainActivity).actionAfterLogin(task.result?.user)
             else
                 CoroutineScope(Dispatchers.Main).launch {
                     (activity as MainActivity).showToast("구글 인증에 실패했습니다.")
@@ -130,7 +130,7 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
-                (activity as MainActivity).popAllFragments()
+                (activity as MainActivity).actionAfterLogin(task.result?.user)
             else {
                 CoroutineScope(Dispatchers.Main).launch {
                     (activity as MainActivity).showToast("페이스북 인증에 실패했습니다.")

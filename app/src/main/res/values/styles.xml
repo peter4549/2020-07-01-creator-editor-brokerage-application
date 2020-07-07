@@ -23,6 +23,14 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="AddImageViewTheme">
+        <item name="android:layout_width">100dp</item>
+        <item name="android:layout_height">100dp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:padding">@dimen/padding_small</item>
+        <item name="android:background">@drawable/ic_add_64dp</item>
+    </style>
+
     <!-- Font style -->
     <style name="TextViewFontStyle" parent="@android:style/Widget.DeviceDefault.TextView">
         <item name="android:fontFamily">@font/nanum_gothic_font_family</item>

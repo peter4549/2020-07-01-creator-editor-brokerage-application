@@ -15,4 +15,8 @@ class PRListFragment : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_pr_list, container, false)
     }
+
+    private fun readAllPr() {
+
+    }
 }

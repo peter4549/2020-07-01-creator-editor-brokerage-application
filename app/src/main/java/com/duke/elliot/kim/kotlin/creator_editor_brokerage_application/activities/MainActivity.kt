@@ -15,10 +15,12 @@ import androidx.fragment.app.FragmentActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.LoginFragment
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.WritingFragment
 import com.facebook.CallbackManager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : FragmentActivity() {
@@ -66,10 +68,13 @@ class MainActivity : FragmentActivity() {
                     if (FirebaseAuth.getInstance().currentUser == null)
                         requestLogin()
                 }
-
             }
-
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        currentUser = FirebaseAuth.getInstance().currentUser
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -103,7 +108,12 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    fun popAllFragments() {
+    fun actionAfterLogin(user: FirebaseUser?) {
+        currentUser = user
+        popAllFragments()
+    }
+
+    private fun popAllFragments() {
         while(supportFragmentManager.backStackEntryCount > 0)
             supportFragmentManager.popBackStackImmediate()
     }
@@ -169,6 +179,8 @@ class MainActivity : FragmentActivity() {
     companion object {
         const val TAG = "MainActivity"
         const val LOGIN_FRAGMENT_TAG = "login_fragment_tag"
+
+        var currentUser: FirebaseUser? = null
 
         private val tabIcons = arrayOf(
             R.drawable.ic_tab_home_24dp,
