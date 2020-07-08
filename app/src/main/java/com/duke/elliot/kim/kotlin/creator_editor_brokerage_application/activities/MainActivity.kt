@@ -1,13 +1,10 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities
 
 import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Base64
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -15,16 +12,20 @@ import androidx.fragment.app.FragmentActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.LoginFragment
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.WritingFragment
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.USERS
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserData
 import com.facebook.CallbackManager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : FragmentActivity() {
 
+    lateinit var currentUserData: UserData
     val callbackManager: CallbackManager? = CallbackManager.Factory.create()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,8 +66,9 @@ class MainActivity : FragmentActivity() {
                     ContextCompat.getColor(
                         this@MainActivity, R.color.colorTabIconSelected), Mode.SRC_IN)
                 if (tab?.text == "내정보") {
-                    if (FirebaseAuth.getInstance().currentUser == null)
+                    if (FirebaseAuth.getInstance().currentUser == null) {
                         requestLogin()
+                    }
                 }
             }
         })
@@ -75,6 +77,9 @@ class MainActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
         currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null)
+            readData()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -110,6 +115,9 @@ class MainActivity : FragmentActivity() {
 
     fun actionAfterLogin(user: FirebaseUser?) {
         currentUser = user
+        if (currentUser != null)
+            readData()
+
         popAllFragments()
     }
 
@@ -151,6 +159,28 @@ class MainActivity : FragmentActivity() {
             .show()
     }
 
+    private fun readData() {
+        FirebaseFirestore.getInstance()
+            .collection(USERS)
+            .document(currentUser?.uid.toString())
+            .get().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    if (task.result != null)
+                        setCurrentUserData(task.result!!.data as Map<String, Any>)
+                } else {
+                    showToast("데이터를 읽어올 수 없습니다.")
+                    println("$TAG: ${task.exception}")
+                }
+            }
+    }
+
+    fun setCurrentUserData(map: Map<String, Any>) {
+        if (::currentUserData.isInitialized)
+            currentUserData.updateData(map)
+        else
+            currentUserData = UserData(map)
+    }
+
     fun showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
         Toast.makeText(this, text, duration).show()
     }
@@ -181,6 +211,7 @@ class MainActivity : FragmentActivity() {
         const val LOGIN_FRAGMENT_TAG = "login_fragment_tag"
 
         var currentUser: FirebaseUser? = null
+        var publicName = "회원"
 
         private val tabIcons = arrayOf(
             R.drawable.ic_tab_home_24dp,

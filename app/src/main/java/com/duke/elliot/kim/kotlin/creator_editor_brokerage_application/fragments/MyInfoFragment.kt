@@ -16,7 +16,6 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_my_info.*
 
-
 class MyInfoFragment : Fragment() {
 
     private var isVerified = false
@@ -30,9 +29,6 @@ class MyInfoFragment : Fragment() {
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
-
-        if (FirebaseAuth.getInstance().currentUser != null)
-            readData()
 
         googleSignInClient = GoogleSignIn.getClient(requireContext(), googleSignInOptions)
 
@@ -56,10 +52,20 @@ class MyInfoFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        if (MainActivity.currentUser != null) {
+            updateUI((activity as MainActivity).currentUserData.data)
+        } else {
+            clearUI()
+        }
+    }
+
     private fun readData() {
         FirebaseFirestore.getInstance()
             .collection(USERS)
-            .document(FirebaseAuth.getInstance().uid.toString())
+            .document(MainActivity.currentUser?.uid.toString())
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     if (task.result != null)
@@ -74,7 +80,10 @@ class MyInfoFragment : Fragment() {
     private fun updateUI(documentSnapshot: DocumentSnapshot) {
         val map = documentSnapshot.data as Map<String, Any>
 
+        MainActivity.publicName = map[PUBLIC_NAME].toString()
+
         edit_text_name.setText(map[NAME].toString())
+        edit_text_public_name.setText(MainActivity.publicName)
         edit_text_phone_number.setText(map[PHONE_NUMBER].toString())
         edit_text_age.setText(map[AGE].toString())
         edit_text_pr.setText(map[PR].toString())
@@ -82,9 +91,34 @@ class MyInfoFragment : Fragment() {
         radio_group_gender.check(map[GENDER].toString().toInt())
     }
 
+    private fun updateUI(map: Map<String, Any>) {
+        MainActivity.publicName = map[PUBLIC_NAME].toString()
+
+        edit_text_name.setText(map[NAME].toString())
+        edit_text_public_name.setText(MainActivity.publicName)
+        edit_text_phone_number.setText(map[PHONE_NUMBER].toString())
+        edit_text_age.setText(map[AGE].toString())
+        edit_text_pr.setText(map[PR].toString())
+
+        radio_group_gender.check(map[GENDER].toString().toInt())
+    }
+
+    private fun clearUI() {
+        edit_text_name.text.clear()
+        edit_text_public_name.text.clear()
+        edit_text_phone_number.text.clear()
+        edit_text_age.text.clear()
+        edit_text_pr.text.clear()
+    }
+
     private fun saveData() {
         if (edit_text_name.text.isBlank()) {
             (activity as MainActivity).showToast("이름을 입력해주세요.")
+            return
+        }
+
+        if (edit_text_public_name.text.isBlank()) {
+            (activity as MainActivity).showToast("공개용 이름을 입력해주세요.")
             return
         }
 
@@ -94,8 +128,8 @@ class MyInfoFragment : Fragment() {
         }
 
         val map = mutableMapOf<String, Any>()
-
         val name = edit_text_name.text.toString()
+        val publicName = edit_text_public_name.text.toString()
         val phoneNumber = edit_text_phone_number.text.toString()
         val age = (edit_text_age.text ?: "").toString()
         val gender = when(radio_group_gender.checkedRadioButtonId) {
@@ -105,6 +139,7 @@ class MyInfoFragment : Fragment() {
         val pr = (edit_text_pr.text ?: "").toString()
 
         map[NAME] = name
+        map[PUBLIC_NAME] = publicName
         map[IS_VERIFIED] = isVerified
         map[PHONE_NUMBER] = phoneNumber
         map[AGE] = age
@@ -113,15 +148,24 @@ class MyInfoFragment : Fragment() {
 
         FirebaseFirestore.getInstance()
             .collection(USERS)
-            .document(FirebaseAuth.getInstance().uid.toString())
+            .document(MainActivity.currentUser?.uid.toString())
             .set(map)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    updateUI(map)
+                    (activity as MainActivity).setCurrentUserData(map)
+                } else {
+                    (activity as MainActivity).showToast("데이터 저장에 실패했습니다.")
+                    println("$TAG: ${task.exception}")
+                }
+            }
     }
 
     private fun logout() {
         FirebaseAuth.getInstance().signOut()
         googleSignInClient?.signOut()
         LoginManager.getInstance().logOut()
-
+        MainActivity.currentUser = null
         (activity as MainActivity).onBackPressed()
     }
 

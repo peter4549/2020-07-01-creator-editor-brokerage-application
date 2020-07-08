@@ -12,4 +12,8 @@
     <color name="backgroundColorRed">#fce4ec</color>
     <color name="backgroundColorLightBlue">#e1f5fe</color>
     <color name="colorFacebook">#3B5998</color>
+
+    <!-- Spinner -->
+    <color name="colorSpinnerDivider">#D6D6D6</color>
+
 </resources>
