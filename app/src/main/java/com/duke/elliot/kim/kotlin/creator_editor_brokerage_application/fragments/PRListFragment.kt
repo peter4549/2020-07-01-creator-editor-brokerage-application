@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentStatePagerAdapter
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.OnSwipeTouchListener
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.RecyclerViewAdapter
 import com.google.firebase.firestore.FirebaseFirestore
@@ -24,6 +26,19 @@ class PRListFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_pr_list, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        text_view_test.setOnTouchListener(OnSwipeTouchListener(requireActivity()))
+
+        if (MainActivity.currentUser == null) {
+            linear_layout_fragment_pr_list.isLongClickable = true
+            linear_layout_fragment_pr_list.setOnTouchListener(OnSwipeTouchListener(requireActivity()))
+        } else {
+            linear_layout_fragment_pr_list.isLongClickable = false
+            linear_layout_fragment_pr_list.setOnTouchListener(null)
+        }
+    }
+
     private fun readPr() {
         FirebaseFirestore.getInstance()
             .collection(PR_LIST)
@@ -31,7 +46,7 @@ class PRListFragment : Fragment() {
                 val map = querySnapshot.documents.map { it.data!! }
                 recyclerViewAdapter = RecyclerViewAdapter(map)
 
-                recycler_view.apply {
+                recycler_view_pr.apply {
                     setHasFixedSize(true)
                     adapter = recyclerViewAdapter
                     layoutManager = LayoutManagerWrapper(context, 1)

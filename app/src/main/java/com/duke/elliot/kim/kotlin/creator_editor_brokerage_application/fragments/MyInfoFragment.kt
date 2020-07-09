@@ -165,8 +165,7 @@ class MyInfoFragment : Fragment() {
         FirebaseAuth.getInstance().signOut()
         googleSignInClient?.signOut()
         LoginManager.getInstance().logOut()
-        MainActivity.currentUser = null
-        (activity as MainActivity).onBackPressed()
+        (activity as MainActivity).actionAfterLogout()
     }
 
     companion object {

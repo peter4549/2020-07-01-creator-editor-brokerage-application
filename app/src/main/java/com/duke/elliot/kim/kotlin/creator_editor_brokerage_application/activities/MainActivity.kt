@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.MotionEvent
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -12,14 +14,18 @@ import androidx.fragment.app.FragmentActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.LoginFragment
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.PRListFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.USERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserData
 import com.facebook.CallbackManager
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.imagepipeline.core.ImagePipelineConfig
+import com.facebook.imagepipeline.core.ImageTranscoderType
+import com.facebook.imagepipeline.core.MemoryChunkType
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -27,6 +33,7 @@ class MainActivity : FragmentActivity() {
 
     lateinit var currentUserData: UserData
     val callbackManager: CallbackManager? = CallbackManager.Factory.create()
+    val prListFragment = PRListFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +47,45 @@ class MainActivity : FragmentActivity() {
 
         // printHashKey(this)
 
+        Fresco.initialize(
+            applicationContext,
+            ImagePipelineConfig.newBuilder(applicationContext)
+                .setMemoryChunkType(MemoryChunkType.BUFFER_MEMORY)
+                .setImageTranscoderType(ImageTranscoderType.JAVA_TRANSCODER)
+                .experiment().setNativeCodeDisabled(true)
+                .build())
+
         view_pager.adapter = PagerFragmentStateAdapter(this)
+
+        /*
+        view_pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
+
+            override fun onPageScrollStateChanged(state: Int) {
+                super.onPageScrollStateChanged(state)
+                if (currentUser == null) {
+                    if (tab_layout.selectedTabPosition == 0) {
+                        requestLogin()
+                        view_pager.isUserInputEnabled = false
+                    }
+
+                    tab_layout.getTabAt(0)?.select()
+                }
+            }
+
+            override fun onPageScrolled(
+                position: Int,
+                positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {
+                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
+            }
+
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+            }
+        })
+
+         */
 
         TabLayoutMediator(tab_layout, view_pager) { tab, position ->
             tab.text = tabTexts[position]
@@ -49,6 +94,21 @@ class MainActivity : FragmentActivity() {
                 ContextCompat.getColor(
                     this@MainActivity, R.color.colorTabIconUnselected), Mode.SRC_IN)
         }.attach()
+
+        val linearLayout = tab_layout.getChildAt(0) as LinearLayout
+        for (i in 0 until linearLayout.childCount) {
+            linearLayout.getChildAt(i).setOnTouchListener { _, motionEvent ->
+                if (motionEvent.action == MotionEvent.ACTION_UP) {
+
+                    if (FirebaseAuth.getInstance().currentUser == null) {
+                        if (i != 0)
+                            requestLogin()
+                    } else
+                        tab_layout.getTabAt(i)?.select()
+                }
+                true
+            }
+        }
 
         tab_layout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
@@ -65,11 +125,6 @@ class MainActivity : FragmentActivity() {
                 tab?.icon?.setColorFilter(
                     ContextCompat.getColor(
                         this@MainActivity, R.color.colorTabIconSelected), Mode.SRC_IN)
-                if (tab?.text == "내정보") {
-                    if (FirebaseAuth.getInstance().currentUser == null) {
-                        requestLogin()
-                    }
-                }
             }
         })
     }
@@ -78,8 +133,12 @@ class MainActivity : FragmentActivity() {
         super.onResume()
         currentUser = FirebaseAuth.getInstance().currentUser
 
-        if (currentUser != null)
+        if (currentUser != null) {
+            view_pager.isUserInputEnabled = true
             readData()
+        } else {
+            view_pager.isUserInputEnabled = false
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -118,12 +177,20 @@ class MainActivity : FragmentActivity() {
         if (currentUser != null)
             readData()
 
+        view_pager.isUserInputEnabled = true
         popAllFragments()
     }
 
     private fun popAllFragments() {
         while(supportFragmentManager.backStackEntryCount > 0)
             supportFragmentManager.popBackStackImmediate()
+    }
+
+    fun actionAfterLogout() {
+        currentUser = null
+        tab_layout.getTabAt(0)?.select()
+        view_pager.isUserInputEnabled = false
+        popAllFragments()
     }
 
     fun startFragment(fragment: Fragment,

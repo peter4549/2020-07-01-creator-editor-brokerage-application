@@ -49,4 +49,17 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:18.0.0'
 
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.4'
+
+    // Fresco (Java-only)
+    implementation('com.facebook.fresco:fresco:2.2.0') {
+        exclude group: 'com.facebook.soloader', module: 'soloader'
+        exclude group: 'com.facebook.fresco', module: 'soloader'
+        exclude group: 'com.facebook.fresco', module: 'nativeimagefilters'
+        exclude group: 'com.facebook.fresco', module: 'nativeimagetranscoder'
+        exclude group: 'com.facebook.fresco', module: 'memory-type-native'
+        exclude group: 'com.facebook.fresco', module: 'imagepipeline-native'
+    }
+
+    // GIF
+    implementation 'com.facebook.fresco:animated-gif:2.2.0'
 }

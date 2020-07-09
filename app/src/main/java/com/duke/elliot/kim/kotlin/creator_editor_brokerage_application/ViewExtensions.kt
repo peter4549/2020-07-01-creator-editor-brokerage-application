@@ -5,7 +5,9 @@ import android.graphics.BlendModeColorFilter
 import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.view.MotionEvent
 import androidx.annotation.RequiresApi
+import androidx.viewpager2.widget.ViewPager2
 
 fun Drawable.setColorFilter(color: Int, mode: Mode = Mode.SRC_ATOP) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

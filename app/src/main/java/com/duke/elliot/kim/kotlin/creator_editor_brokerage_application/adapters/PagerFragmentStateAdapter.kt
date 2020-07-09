@@ -19,7 +19,7 @@ class PagerFragmentStateAdapter(private val fragmentActivity: FragmentActivity)
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> PRListFragment()
+            0 -> (fragmentActivity as MainActivity).prListFragment
             1 -> WritingFragment()
             2 -> ChatFragment()
             3 -> MyInfoFragment()
