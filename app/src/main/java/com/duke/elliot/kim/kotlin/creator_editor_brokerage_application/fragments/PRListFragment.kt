@@ -43,7 +43,8 @@ class PRListFragment : Fragment() {
             .collection(PR_LIST)
             .get().addOnSuccessListener { querySnapshot ->
                 val map = querySnapshot.documents.map { it.data!! }
-                recyclerViewAdapter = RecyclerViewAdapter(map)
+                recyclerViewAdapter =
+                    RecyclerViewAdapter((activity as MainActivity), R.id.frame_layout_fragment_pr_list, map)
 
                 recycler_view_pr.apply {
                     setHasFixedSize(true)

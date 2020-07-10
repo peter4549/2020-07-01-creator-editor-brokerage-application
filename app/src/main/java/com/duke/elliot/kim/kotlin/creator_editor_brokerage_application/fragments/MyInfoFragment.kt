@@ -1,11 +1,15 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_CODE_GALLERY
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.facebook.login.LoginManager
@@ -38,9 +42,15 @@ class MyInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        simple_drawee_view_profile.setOnClickListener {
+            openGallery()
+        }
+
         button_verification.setOnClickListener {
             (activity as MainActivity)
-                .startFragment(PhoneAuthFragment(), R.id.my_info_fragment_container_view)
+                .startFragment(PhoneAuthFragment(),
+                    R.id.my_info_fragment_container_view,
+                    MainActivity.PHONE_AUTH_FRAGMENT_TAG)
         }
 
         button_save_data.setOnClickListener {
@@ -62,6 +72,32 @@ class MyInfoFragment : Fragment() {
                 clearUI()
         } else {
             clearUI()
+        }
+
+        if (!(activity as MainActivity).isCurrentUserModelInitialized() ||
+            (activity as MainActivity).currentUserModel.isVerified) {
+            button_verification.isEnabled = false
+            button_verification.setTextColor(ContextCompat.getColor(requireContext(),
+                R.color.colorDisabledButtonText))
+        } else {
+            button_verification.isEnabled = true
+            button_verification.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.colorAccent
+                )
+            )
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        when (requestCode) {
+            REQUEST_CODE_GALLERY -> {
+                if (data != null)
+                    setImage(data.data!!)
+            }
         }
     }
 
@@ -112,6 +148,16 @@ class MyInfoFragment : Fragment() {
         edit_text_phone_number.text.clear()
         edit_text_age.text.clear()
         edit_text_pr.text.clear()
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, REQUEST_CODE_GALLERY)
+    }
+
+    private fun setImage(uri: Uri) {
+        simple_drawee_view_profile.setImageURI(uri.toString())
     }
 
     private fun saveData() {

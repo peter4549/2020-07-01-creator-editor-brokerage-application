@@ -5,9 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 
-const val PERMISSIONS_REQUEST_CODE = 1000
-const val RECEIVE_SMS_PERMISSIONS_REQUEST_CODE = 1001
-
 val RECEIVE_SMS_PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.RECEIVE_SMS)
 
 fun getPermissionsRequired(context: Context): Array<String> {

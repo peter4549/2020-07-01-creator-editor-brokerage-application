@@ -62,6 +62,10 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
             } else
                 resendCode((activity as MainActivity).currentUserModel.phoneNumber)
         }
+
+        button_test.setOnClickListener {
+            (activity as MainActivity).onBackPressed()
+        }
     }
 
     override fun onResume() {

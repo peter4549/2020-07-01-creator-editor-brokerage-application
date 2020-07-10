@@ -32,4 +32,7 @@
     <string name="category_sports">스포츠</string>
     <string name="category_travel_event">여행/이벤트</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

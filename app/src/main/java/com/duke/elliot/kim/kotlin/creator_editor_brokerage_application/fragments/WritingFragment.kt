@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.*
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_CODE_GALLERY
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.google.common.hash.Hashing
 import com.google.firebase.firestore.FirebaseFirestore
@@ -129,7 +130,7 @@ class WritingFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        when(requestCode) {
+        when (requestCode) {
             REQUEST_CODE_GALLERY -> {
                 if (data != null)
                     setImage(data.data!!)
@@ -283,7 +284,5 @@ class WritingFragment : Fragment() {
 
     companion object {
         const val TAG = "WritingFragment"
-
-        const val REQUEST_CODE_GALLERY = 1000
     }
 }

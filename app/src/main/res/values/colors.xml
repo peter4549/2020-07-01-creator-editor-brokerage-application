@@ -16,4 +16,6 @@
     <!-- Spinner -->
     <color name="colorSpinnerDivider">#D6D6D6</color>
 
+    <color name="colorDisabledButtonText">#808080</color>
+
 </resources>

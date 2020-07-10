@@ -32,6 +32,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : FragmentActivity() {
 
     lateinit var currentUserModel: UserModel
+    private var selectedTabIndex = 0
     val callbackManager: CallbackManager? = CallbackManager.Factory.create()
     val prListFragment = PRListFragment()
 
@@ -99,6 +100,7 @@ class MainActivity : FragmentActivity() {
         for (i in 0 until linearLayout.childCount) {
             linearLayout.getChildAt(i).setOnTouchListener { _, motionEvent ->
                 if (motionEvent.action == MotionEvent.ACTION_UP) {
+                    selectedTabIndex = i
 
                     if (FirebaseAuth.getInstance().currentUser == null) {
                         if (i != 0)
@@ -163,6 +165,8 @@ class MainActivity : FragmentActivity() {
     override fun onBackPressed() {
         when {
             supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null -> super.onBackPressed()
+            supportFragmentManager.findFragmentByTag(PHONE_AUTH_FRAGMENT_TAG) != null -> super.onBackPressed()
+            supportFragmentManager.findFragmentByTag(PR_FRAGMENT_TAG) != null -> super.onBackPressed()
             view_pager.currentItem == 0 -> {
                 super.onBackPressed()
             }
@@ -179,6 +183,7 @@ class MainActivity : FragmentActivity() {
 
         view_pager.isUserInputEnabled = true
         popAllFragments()
+        tab_layout.getTabAt(selectedTabIndex)?.select()
     }
 
     private fun popAllFragments() {
@@ -297,6 +302,8 @@ class MainActivity : FragmentActivity() {
     companion object {
         const val TAG = "MainActivity"
         const val LOGIN_FRAGMENT_TAG = "login_fragment_tag"
+        const val PHONE_AUTH_FRAGMENT_TAG = "phone_auth_fragment_tag"
+        const val PR_FRAGMENT_TAG = "pr_fragment_tag"
 
         var currentUser: FirebaseUser? = null
         var publicName = "회원"
