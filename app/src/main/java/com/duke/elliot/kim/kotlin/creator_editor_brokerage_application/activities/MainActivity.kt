@@ -16,7 +16,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.LoginFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.PRListFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.USERS
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserData
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.facebook.CallbackManager
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
@@ -31,7 +31,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : FragmentActivity() {
 
-    lateinit var currentUserData: UserData
+    lateinit var currentUserModel: UserModel
     val callbackManager: CallbackManager? = CallbackManager.Factory.create()
     val prListFragment = PRListFragment()
 
@@ -172,7 +172,7 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    fun actionAfterLogin(user: FirebaseUser?) {
+    fun eventAfterLogin(user: FirebaseUser?) {
         currentUser = user
         if (currentUser != null)
             readData()
@@ -186,11 +186,14 @@ class MainActivity : FragmentActivity() {
             supportFragmentManager.popBackStackImmediate()
     }
 
-    fun actionAfterLogout() {
+    fun eventAfterLogout() {
         currentUser = null
+        if (::currentUserModel.isInitialized)
+            currentUserModel.finalize()
         tab_layout.getTabAt(0)?.select()
         view_pager.isUserInputEnabled = false
         popAllFragments()
+        showToast("로그아웃 되었습니다.")
     }
 
     fun startFragment(fragment: Fragment,
@@ -213,7 +216,7 @@ class MainActivity : FragmentActivity() {
         builder.setPositiveButton("로그인") { _, _ ->
             startFragment(LoginFragment(), R.id.main_activity_container_view, LOGIN_FRAGMENT_TAG)
         }.setNegativeButton("취소") { _, _ -> }
-            .show()
+            .create().show()
     }
 
     fun requestAuthentication() {
@@ -223,7 +226,15 @@ class MainActivity : FragmentActivity() {
         builder.setPositiveButton("본인인증") { _, _ ->
             startFragment(LoginFragment(), R.id.main_activity_container_view)
         }.setNegativeButton("취소") { _, _ -> }
-            .show()
+            .create().show()
+    }
+
+    fun requestProfileCreation() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("프로필 작성")
+        builder.setMessage("프로필이 아직 등록되지 않았습니다. 프로필을 작성해주세요.")
+        builder.setPositiveButton("확인") { _, _ -> tab_layout.getTabAt(3)?.select() }
+            .create().show()
     }
 
     private fun readData() {
@@ -233,7 +244,10 @@ class MainActivity : FragmentActivity() {
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     if (task.result != null)
-                        setCurrentUserData(task.result!!.data as Map<String, Any>)
+                        if (task.result!!.data == null)
+                            requestProfileCreation()
+                        else
+                            setCurrentUserModel(task.result!!.data as Map<String, Any>)
                 } else {
                     showToast("데이터를 읽어올 수 없습니다.")
                     println("$TAG: ${task.exception}")
@@ -241,18 +255,24 @@ class MainActivity : FragmentActivity() {
             }
     }
 
-    fun setCurrentUserData(map: Map<String, Any>) {
-        if (::currentUserData.isInitialized)
-            currentUserData.updateData(map)
-        else
-            currentUserData = UserData(map)
+    private fun setCurrentUserModel(map: Map<String, Any>) {
+        if (::currentUserModel.isInitialized)
+            currentUserModel.setData(map)
+        else {
+            currentUserModel = UserModel()
+            currentUserModel.setData(map)
+        }
     }
+
+    fun isCurrentUserModelInitialized() : Boolean = this::currentUserModel.isInitialized
 
     fun showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
         Toast.makeText(this, text, duration).show()
     }
 
+
     /*
+    // Dq8Gg7LDtrK2P1vH4eJulfzthIY=
     @SuppressLint("PackageManagerGetSignatures")
     private fun printHashKey(context: Context) {
         try {
@@ -272,6 +292,7 @@ class MainActivity : FragmentActivity() {
         }
     }
      */
+
 
     companion object {
         const val TAG = "MainActivity"

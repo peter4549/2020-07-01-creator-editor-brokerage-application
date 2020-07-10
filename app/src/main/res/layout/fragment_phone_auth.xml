@@ -11,23 +11,11 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/edit_text_phone_number"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:hint="전화번호 입력"/>
-
     <Button
         android:id="@+id/button_send_code"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="인증번호 받기"/>
-
-    <EditText
-        android:id="@+id/edit_text_verification_code"
-        android:layout_width="200dp"
-        android:layout_height="60dp"
-        android:hint="인증번호 입력"/>
 
     </LinearLayout>
 

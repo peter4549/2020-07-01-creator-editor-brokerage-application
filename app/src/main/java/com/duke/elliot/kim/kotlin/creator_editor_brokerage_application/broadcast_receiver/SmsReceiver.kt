@@ -23,7 +23,6 @@ class SmsReceiver : BroadcastReceiver() {
 
             if (messageBody?.contains(SMS_TEMPLATE)!!) {
                 val verificationCode = messageBody.filter { it.isDigit() }
-                Toast.makeText(context, verificationCode, Toast.LENGTH_LONG).show()
                 // 로그인된 계정에서 발송된 문자만이 유효합니다. 라는 메시지 필요.
 
                 onVerifyCodeListener.onVerifyCode(verificationCode)

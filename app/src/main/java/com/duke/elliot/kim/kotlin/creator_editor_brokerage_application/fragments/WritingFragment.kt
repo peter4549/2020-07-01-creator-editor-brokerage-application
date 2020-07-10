@@ -8,17 +8,17 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.BaseAdapter
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.google.common.hash.Hashing
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.fragment_writing.*
 import kotlinx.coroutines.*
+import java.nio.charset.Charset
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -63,24 +63,25 @@ class WritingFragment : Fragment() {
         )
 
         categoryDocumentNames = mapOf(
-            contentCategories[0] to "category_car",
-            contentCategories[1] to "category_beauty_fashion",
-            contentCategories[2] to "category_comedy",
-            contentCategories[3] to "category_education",
-            contentCategories[4] to "category_entertainment",
-            contentCategories[5] to "category_family_entertainment",
-            contentCategories[6] to "category_movie_animation",
-            contentCategories[7] to "category_food",
-            contentCategories[8] to "category_game",
-            contentCategories[9] to "category_know_how_style",
-            contentCategories[10] to "category_music",
-            contentCategories[11] to "category_news_politics",
-            contentCategories[12] to "category_non_profit_social_movement",
-            contentCategories[13] to "category_people_blog",
-            contentCategories[14] to "category_pets_animals",
-            contentCategories[15] to "category_science_technology",
-            contentCategories[16] to "category_sports",
-            contentCategories[17] to "category_travel_event"
+            contentCategories[0] to "none",
+            contentCategories[1] to "category_car",
+            contentCategories[2] to "category_beauty_fashion",
+            contentCategories[3] to "category_comedy",
+            contentCategories[4] to "category_education",
+            contentCategories[5] to "category_entertainment",
+            contentCategories[6] to "category_family_entertainment",
+            contentCategories[7] to "category_movie_animation",
+            contentCategories[8] to "category_food",
+            contentCategories[9] to "category_game",
+            contentCategories[10] to "category_know_how_style",
+            contentCategories[11] to "category_music",
+            contentCategories[12] to "category_news_politics",
+            contentCategories[13] to "category_non_profit_social_movement",
+            contentCategories[14] to "category_people_blog",
+            contentCategories[15] to "category_pets_animals",
+            contentCategories[16] to "category_science_technology",
+            contentCategories[17] to "category_sports",
+            contentCategories[18] to "category_travel_event"
         )
 
         selectedCategory = contentCategories[0]
@@ -112,6 +113,16 @@ class WritingFragment : Fragment() {
 
         button_upload.setOnClickListener {
             saveData()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (MainActivity.currentUser != null) {
+            if (!(activity as MainActivity).isCurrentUserModelInitialized())
+                (activity as MainActivity).requestProfileCreation()
+        } else {
+            (activity as MainActivity).requestLogin()
         }
     }
 
@@ -189,9 +200,12 @@ class WritingFragment : Fragment() {
             map[IMAGE_NAMES] = imageNames
             map[REGISTRATION_TIME] = registrationTime
 
+            println(TAG + hashString(userId + registrationTime))
+            val hashCode = hashString(userId + registrationTime).chunked(16)[0]
+            println(hashCode)
             FirebaseFirestore.getInstance()
                 .collection(PR_LIST)
-                .document(categoryDocumentName)
+                .document(hashCode)
                 .set(map)
                 .addOnCompleteListener {  task ->
                     if (task.isSuccessful)
@@ -259,6 +273,12 @@ class WritingFragment : Fragment() {
         inner class ViewHolder {
             lateinit var textView: TextView
         }
+    }
+
+    private fun hashString(input: String, algorithm: String = "SHA-256"): String {
+        return MessageDigest.getInstance(algorithm)
+            .digest(input.toByteArray())
+            .fold("", { string, it -> string + "%02x".format(it) })
     }
 
     companion object {

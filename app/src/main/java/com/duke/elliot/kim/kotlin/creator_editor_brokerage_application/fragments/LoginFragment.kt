@@ -58,9 +58,13 @@ class LoginFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == SignUpFragment.REQUEST_CODE_SIGN_IN) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            val account = task.getResult(ApiException::class.java)
-            firebaseAuthWithGoogle(account)
+            try {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                val account = task.getResult(ApiException::class.java)
+                firebaseAuthWithGoogle(account)
+            } catch (e: ApiException) {
+                println("$TAG: $e")
+            }
         }
     }
 
@@ -71,7 +75,7 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
-                    (activity as MainActivity).actionAfterLogin(task.result?.user)
+                    (activity as MainActivity).eventAfterLogin(task.result?.user)
                 else
                     CoroutineScope(Dispatchers.Main).launch {
                         (activity as MainActivity).showToast("이메일 로그인에 실패했습니다.")
@@ -95,7 +99,7 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
-                (activity as MainActivity).actionAfterLogin(task.result?.user)
+                (activity as MainActivity).eventAfterLogin(task.result?.user)
             else
                 CoroutineScope(Dispatchers.Main).launch {
                     (activity as MainActivity).showToast("구글 인증에 실패했습니다.")
@@ -130,12 +134,16 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
-                (activity as MainActivity).actionAfterLogin(task.result?.user)
+                (activity as MainActivity).eventAfterLogin(task.result?.user)
             else {
                 CoroutineScope(Dispatchers.Main).launch {
                     (activity as MainActivity).showToast("페이스북 인증에 실패했습니다.")
                 }
             }
         }
+    }
+
+    companion object {
+        const val TAG = "LoginFragment"
     }
 }

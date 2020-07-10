@@ -43,7 +43,7 @@ class SignUpFragment : Fragment() {
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             (activity as MainActivity).showToast("아이디가 생성되었습니다.")
-                            (activity as MainActivity).actionAfterLogin(task.result?.user)
+                            (activity as MainActivity).eventAfterLogin(task.result?.user)
                         } else
                             showExceptionMessage(task)
                     }

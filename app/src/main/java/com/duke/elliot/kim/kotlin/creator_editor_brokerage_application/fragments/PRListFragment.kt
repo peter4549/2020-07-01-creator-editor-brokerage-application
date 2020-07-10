@@ -28,14 +28,13 @@ class PRListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        text_view_test.setOnTouchListener(OnSwipeTouchListener(requireActivity()))
 
         if (MainActivity.currentUser == null) {
-            linear_layout_fragment_pr_list.isLongClickable = true
-            linear_layout_fragment_pr_list.setOnTouchListener(OnSwipeTouchListener(requireActivity()))
+            recycler_view_pr.isLongClickable = true
+            recycler_view_pr.setOnTouchListener(OnSwipeTouchListener(requireActivity()))
         } else {
-            linear_layout_fragment_pr_list.isLongClickable = false
-            linear_layout_fragment_pr_list.setOnTouchListener(null)
+            recycler_view_pr.isLongClickable = false
+            recycler_view_pr.setOnTouchListener(null)
         }
     }
 

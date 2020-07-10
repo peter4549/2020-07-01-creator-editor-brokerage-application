@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.facebook.login.LoginManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -18,7 +19,6 @@ import kotlinx.android.synthetic.main.fragment_my_info.*
 
 class MyInfoFragment : Fragment() {
 
-    private var isVerified = false
     private var googleSignInClient: GoogleSignInClient? = null
 
     override fun onCreateView(
@@ -56,7 +56,10 @@ class MyInfoFragment : Fragment() {
         super.onResume()
 
         if (MainActivity.currentUser != null) {
-            updateUI((activity as MainActivity).currentUserData.data)
+            if ((activity as MainActivity).isCurrentUserModelInitialized())
+                updateUI((activity as MainActivity).currentUserModel)
+            else
+                clearUI()
         } else {
             clearUI()
         }
@@ -91,16 +94,16 @@ class MyInfoFragment : Fragment() {
         radio_group_gender.check(map[GENDER].toString().toInt())
     }
 
-    private fun updateUI(map: Map<String, Any>) {
-        MainActivity.publicName = map[PUBLIC_NAME].toString()
+    private fun updateUI(userModel: UserModel) {
+        MainActivity.publicName = userModel.publicName
 
-        edit_text_name.setText(map[NAME].toString())
-        edit_text_public_name.setText(MainActivity.publicName)
-        edit_text_phone_number.setText(map[PHONE_NUMBER].toString())
-        edit_text_age.setText(map[AGE].toString())
-        edit_text_pr.setText(map[PR].toString())
+        edit_text_name.setText(userModel.name)
+        edit_text_public_name.setText(userModel.publicName)
+        edit_text_phone_number.setText(userModel.phoneNumber)
+        edit_text_age.setText(userModel.age.toString())
+        edit_text_pr.setText(userModel.pr)
 
-        radio_group_gender.check(map[GENDER].toString().toInt())
+        radio_group_gender.check(userModel.gender)
     }
 
     private fun clearUI() {
@@ -127,33 +130,33 @@ class MyInfoFragment : Fragment() {
             return
         }
 
-        val map = mutableMapOf<String, Any>()
+        val userModel = UserModel()
         val name = edit_text_name.text.toString()
         val publicName = edit_text_public_name.text.toString()
         val phoneNumber = edit_text_phone_number.text.toString()
-        val age = (edit_text_age.text ?: "").toString()
+        val age = (edit_text_age.text ?: "0").toString().toInt()
         val gender = when(radio_group_gender.checkedRadioButtonId) {
             R.id.radio_button_male -> MALE
             else -> FEMALE
         }
         val pr = (edit_text_pr.text ?: "").toString()
 
-        map[NAME] = name
-        map[PUBLIC_NAME] = publicName
-        map[IS_VERIFIED] = isVerified
-        map[PHONE_NUMBER] = phoneNumber
-        map[AGE] = age
-        map[GENDER] = gender
-        map[PR] = pr
+        userModel.name = name
+        userModel.publicName = publicName
+        userModel.isVerified = false
+        userModel.phoneNumber = phoneNumber
+        userModel.age = age
+        userModel.gender = gender
+        userModel.pr = pr
 
         FirebaseFirestore.getInstance()
             .collection(USERS)
             .document(MainActivity.currentUser?.uid.toString())
-            .set(map)
+            .set(userModel)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    updateUI(map)
-                    (activity as MainActivity).setCurrentUserData(map)
+                    updateUI(userModel)
+                    (activity as MainActivity).currentUserModel = userModel
                 } else {
                     (activity as MainActivity).showToast("데이터 저장에 실패했습니다.")
                     println("$TAG: ${task.exception}")
@@ -165,7 +168,7 @@ class MyInfoFragment : Fragment() {
         FirebaseAuth.getInstance().signOut()
         googleSignInClient?.signOut()
         LoginManager.getInstance().logOut()
-        (activity as MainActivity).actionAfterLogout()
+        (activity as MainActivity).eventAfterLogout()
     }
 
     companion object {

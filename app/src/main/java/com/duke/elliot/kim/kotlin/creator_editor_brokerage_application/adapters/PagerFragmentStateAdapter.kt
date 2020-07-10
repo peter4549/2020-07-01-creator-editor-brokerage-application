@@ -6,7 +6,6 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.ChatFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.MyInfoFragment
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.PRListFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.WritingFragment
 import java.lang.Exception
 
