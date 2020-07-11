@@ -164,6 +164,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onBackPressed() {
         when {
+            supportFragmentManager.findFragmentByTag(CHAT_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(PHONE_AUTH_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(PR_FRAGMENT_TAG) != null -> super.onBackPressed()
@@ -301,6 +302,7 @@ class MainActivity : FragmentActivity() {
 
     companion object {
         const val TAG = "MainActivity"
+        const val CHAT_FRAGMENT_TAG = "chat_fragment_tag"
         const val LOGIN_FRAGMENT_TAG = "login_fragment_tag"
         const val PHONE_AUTH_FRAGMENT_TAG = "phone_auth_fragment_tag"
         const val PR_FRAGMENT_TAG = "pr_fragment_tag"

@@ -5,18 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentStatePagerAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.OnSwipeTouchListener
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.RecyclerViewAdapter
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PRListAdapter
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PRModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_pr_list.*
 
 class PRListFragment : Fragment() {
 
-    lateinit var recyclerViewAdapter: RecyclerViewAdapter
+    lateinit var PRListAdapter: PRListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,13 +42,13 @@ class PRListFragment : Fragment() {
         FirebaseFirestore.getInstance()
             .collection(PR_LIST)
             .get().addOnSuccessListener { querySnapshot ->
-                val map = querySnapshot.documents.map { it.data!! }
-                recyclerViewAdapter =
-                    RecyclerViewAdapter((activity as MainActivity), R.id.frame_layout_fragment_pr_list, map)
+                val prModels = querySnapshot.documents.map { PRModel(it.data!!) }
+                PRListAdapter =
+                    PRListAdapter((activity as MainActivity), R.id.frame_layout_fragment_pr_list, prModels)
 
                 recycler_view_pr.apply {
                     setHasFixedSize(true)
-                    adapter = recyclerViewAdapter
+                    adapter = PRListAdapter
                     layoutManager = LayoutManagerWrapper(context, 1)
                 }
             }

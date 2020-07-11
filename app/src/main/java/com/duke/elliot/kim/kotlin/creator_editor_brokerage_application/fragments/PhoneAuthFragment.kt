@@ -79,6 +79,20 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
             (activity as MainActivity).showToast("먼저 로그인을 해주세요.")
             // (activity as MainActivity).supportFragmentManager.popBackStackImmediate()
         }
+
+        if (!isSmsReceiverRegistered) {
+            requireContext().registerReceiver(smsReceiver, filter)
+            isSmsReceiverRegistered = true
+        }
+    }
+
+    override fun onStop() {
+        if (isSmsReceiverRegistered) {
+            requireContext().unregisterReceiver(smsReceiver)
+            isSmsReceiverRegistered = false
+        }
+
+        super.onStop()
     }
 
     override fun onVerifyCode(code: String) {
@@ -103,13 +117,6 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
             // 되던게 갑자기 안되니 ... 딱히 바꾼게 없는데. 추가 인증 이런거는 손 안댄거 같은데.
             // db 밀어보자.
             )
-
-            delay(timeout * 1001)
-
-            if (isSmsReceiverRegistered) {
-                requireContext().unregisterReceiver(smsReceiver)
-                isSmsReceiverRegistered = false
-            }
         }
     }
 
@@ -130,30 +137,15 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
         callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(p0: PhoneAuthCredential) {
                 code = p0.smsCode
-
-                if (isSmsReceiverRegistered) {
-                    requireContext().unregisterReceiver(smsReceiver)
-                    isSmsReceiverRegistered = false
-                }
             }
 
             override fun onVerificationFailed(p0: FirebaseException) {
                 (activity as MainActivity).showToast("인증에 실패했습니다.")
                 println("$TAG: ${p0.message}")
-
-                if (isSmsReceiverRegistered) {
-                    requireContext().unregisterReceiver(smsReceiver)
-                    isSmsReceiverRegistered = false
-                }
             }
 
             override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(p0, p1)
-
-                if (!isSmsReceiverRegistered) {
-                    requireContext().registerReceiver(smsReceiver, filter)
-                    isSmsReceiverRegistered = true
-                }
 
                 (activity as MainActivity).showToast("인증번호가 발송되었습니다.")
                 resendingToken = p1

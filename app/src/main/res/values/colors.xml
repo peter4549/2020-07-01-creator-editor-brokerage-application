@@ -18,4 +18,6 @@
 
     <color name="colorDisabledButtonText">#808080</color>
 
+    <color name="backgroundColorFab">#fff9c4</color>
+
 </resources>

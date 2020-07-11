@@ -7,18 +7,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.*
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PRModel
 import com.facebook.drawee.view.SimpleDraweeView
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.card_view_pr.view.*
 
 
-class RecyclerViewAdapter(private val activity: MainActivity,
-                          private val containerViewId: Int,
-                          private val prList: List<Map<String, Any>>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
+class PRListAdapter(private val activity: MainActivity,
+                    private val containerViewId: Int,
+                    private val prList: List<PRModel>) : RecyclerView.Adapter<PRListAdapter.ViewHolder>() {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): RecyclerViewAdapter.ViewHolder {
+    ): PRListAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.card_view_pr, parent, false)
 
         return ViewHolder(view)
@@ -28,13 +29,13 @@ class RecyclerViewAdapter(private val activity: MainActivity,
         return prList.size
     }
 
-    override fun onBindViewHolder(holder: RecyclerViewAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: PRListAdapter.ViewHolder, position: Int) {
         val pr = prList[position]
-        holder.view.text_view_title.text = pr.getValue(TITLE) as String
+        holder.view.text_view_title.text = pr.title
         // holder.view.text_view_publisher = prList[position].get
         @Suppress("UNCHECKED_CAST")
         loadImage(holder.view.simple_drawee_view_pr,
-            pr.getValue(USER_ID) as String, pr.getValue(IMAGE_NAMES) as List<String?>)
+            pr.userId, pr.imageNames as List<String?>)
 
         holder.view.setOnClickListener {
             activity.startFragment(PRFragment(pr), containerViewId, MainActivity.PR_FRAGMENT_TAG)

@@ -13,6 +13,8 @@ import android.widget.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_CODE_GALLERY
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PRModel
 import com.google.common.hash.Hashing
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -170,8 +172,6 @@ class WritingFragment : Fragment() {
             return
         }
 
-        val registrationTime =
-            SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
         var job = Job() as Job
 
         runBlocking {
@@ -188,18 +188,24 @@ class WritingFragment : Fragment() {
 
             job.join()
 
-            val map = mutableMapOf<String, Any>()
+            val prModel = PRModel()
             val userId = MainActivity.currentUser?.uid!!
+            val occupation = ""
+            val publisher = (activity as MainActivity).currentUserModel.publicName
             val categoryDocumentName = categoryDocumentNames.getValue(selectedCategory)
             val title = edit_text_title.text.toString()
             val content = (edit_text_content.text ?: "").toString()
+            val registrationTime =
+                SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
 
-            map[USER_ID] = userId
-            map[CATEGORY] = categoryDocumentName
-            map[TITLE] = title
-            map[CONTENT] = content
-            map[IMAGE_NAMES] = imageNames
-            map[REGISTRATION_TIME] = registrationTime
+            prModel.userId = userId
+            prModel.publisher = publisher
+            prModel.occupation = occupation
+            prModel.category = categoryDocumentName
+            prModel.title = title
+            prModel.content = content
+            prModel.registrationTime = registrationTime
+            prModel.imageNames = imageNames
 
             println(TAG + hashString(userId + registrationTime))
             val hashCode = hashString(userId + registrationTime).chunked(16)[0]
@@ -207,7 +213,7 @@ class WritingFragment : Fragment() {
             FirebaseFirestore.getInstance()
                 .collection(PR_LIST)
                 .document(hashCode)
-                .set(map)
+                .set(prModel)
                 .addOnCompleteListener {  task ->
                     if (task.isSuccessful)
                         CoroutineScope(Dispatchers.Main).launch {
@@ -274,12 +280,6 @@ class WritingFragment : Fragment() {
         inner class ViewHolder {
             lateinit var textView: TextView
         }
-    }
-
-    private fun hashString(input: String, algorithm: String = "SHA-256"): String {
-        return MessageDigest.getInstance(algorithm)
-            .digest(input.toByteArray())
-            .fold("", { string, it -> string + "%02x".format(it) })
     }
 
     companion object {

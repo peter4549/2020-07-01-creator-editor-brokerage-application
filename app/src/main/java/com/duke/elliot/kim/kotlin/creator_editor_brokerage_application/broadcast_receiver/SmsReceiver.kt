@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.telephony.SmsMessage
 import android.widget.Toast
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.PhoneAuthFragment
 
 class SmsReceiver : BroadcastReceiver() {
 
@@ -24,13 +23,9 @@ class SmsReceiver : BroadcastReceiver() {
             if (messageBody?.contains(SMS_TEMPLATE)!!) {
                 val verificationCode = messageBody.filter { it.isDigit() }
                 // 로그인된 계정에서 발송된 문자만이 유효합니다. 라는 메시지 필요.
-
+                Toast.makeText(context, verificationCode, Toast.LENGTH_LONG).show()
                 onVerifyCodeListener.onVerifyCode(verificationCode)
-
-                if (PhoneAuthFragment.isSmsReceiverRegistered) {
-                    context?.unregisterReceiver(this)
-                    PhoneAuthFragment.isSmsReceiverRegistered = false
-                }
+                println("INRECEIVER: $verificationCode")
             }
         }
     }
