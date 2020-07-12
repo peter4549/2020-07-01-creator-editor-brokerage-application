@@ -43,11 +43,14 @@ class SmsReceiver : BroadcastReceiver() {
         val messages: Array<SmsMessage?> = arrayOfNulls(objects.size)
 
         for (i in objects.indices) {
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val format = bundle.getString("format")
                 messages[i] = SmsMessage.createFromPdu(objects[i] as ByteArray, format)
-            } else
+            } else {
+                @Suppress("DEPRECATION")
                 messages[i] = SmsMessage.createFromPdu(objects[i] as ByteArray)
+            }
         }
 
         return messages

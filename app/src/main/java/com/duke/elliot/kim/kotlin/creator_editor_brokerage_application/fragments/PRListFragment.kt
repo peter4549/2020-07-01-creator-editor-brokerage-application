@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.fragment_pr_list.*
 
 class PRListFragment : Fragment() {
 
-    lateinit var PRListAdapter: PRListAdapter
+    lateinit var prListAdapter: PRListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,12 +43,12 @@ class PRListFragment : Fragment() {
             .collection(PR_LIST)
             .get().addOnSuccessListener { querySnapshot ->
                 val prModels = querySnapshot.documents.map { PRModel(it.data!!) }
-                PRListAdapter =
+                prListAdapter =
                     PRListAdapter((activity as MainActivity), R.id.frame_layout_fragment_pr_list, prModels)
 
                 recycler_view_pr.apply {
                     setHasFixedSize(true)
-                    adapter = PRListAdapter
+                    adapter = prListAdapter
                     layoutManager = LayoutManagerWrapper(context, 1)
                 }
             }

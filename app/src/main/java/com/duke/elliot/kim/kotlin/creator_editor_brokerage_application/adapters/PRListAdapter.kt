@@ -10,7 +10,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PRModel
 import com.facebook.drawee.view.SimpleDraweeView
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.android.synthetic.main.card_view_pr.view.*
+import kotlinx.android.synthetic.main.item_view_pr.view.*
 
 
 class PRListAdapter(private val activity: MainActivity,
@@ -20,8 +20,7 @@ class PRListAdapter(private val activity: MainActivity,
         parent: ViewGroup,
         viewType: Int
     ): PRListAdapter.ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.card_view_pr, parent, false)
-
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_view_pr, parent, false)
         return ViewHolder(view)
     }
 
@@ -40,7 +39,6 @@ class PRListAdapter(private val activity: MainActivity,
         holder.view.setOnClickListener {
             activity.startFragment(PRFragment(pr), containerViewId, MainActivity.PR_FRAGMENT_TAG)
         }
-
     }
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)

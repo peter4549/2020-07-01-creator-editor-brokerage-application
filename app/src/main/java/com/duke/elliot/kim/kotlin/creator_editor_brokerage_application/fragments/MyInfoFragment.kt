@@ -19,7 +19,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.fragment_my_info.*
+import kotlinx.coroutines.*
 
 class MyInfoFragment : Fragment() {
 
@@ -195,19 +197,41 @@ class MyInfoFragment : Fragment() {
         userModel.gender = gender
         userModel.pr = pr
 
-        FirebaseFirestore.getInstance()
-            .collection(USERS)
-            .document(MainActivity.currentUser?.uid.toString())
-            .set(userModel)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    updateUI(userModel)
-                    (activity as MainActivity).currentUserModel = userModel
-                } else {
-                    (activity as MainActivity).showToast("데이터 저장에 실패했습니다.")
-                    println("$TAG: ${task.exception}")
+        var job = Job() as Job
+
+        CoroutineScope(Dispatchers.IO).launch {
+            job = launch(Dispatchers.IO + job) {
+                FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        userModel.pushToken = task.result?.token
+                        println("$TAG: Token generated")
+                    } else {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            (activity as MainActivity).showToast("토큰 생성에 실패했습니다.")
+                        }
+                        println("$TAG: Token generation failed")
+                    }
                 }
             }
+
+            job.join()
+
+            FirebaseFirestore.getInstance()
+                .collection(USERS)
+                .document(MainActivity.currentUser?.uid.toString())
+                .set(userModel)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        updateUI(userModel)
+                        (activity as MainActivity).currentUserModel = userModel
+                    } else {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            (activity as MainActivity).showToast("데이터 저장에 실패했습니다.")
+                        }
+                        println("$TAG: ${task.exception}")
+                    }
+                }
+        }
     }
 
     private fun logout() {

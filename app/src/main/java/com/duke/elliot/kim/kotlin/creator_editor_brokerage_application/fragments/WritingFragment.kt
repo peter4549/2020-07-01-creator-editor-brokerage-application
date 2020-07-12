@@ -15,13 +15,11 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_C
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PRModel
-import com.google.common.hash.Hashing
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.fragment_writing.*
 import kotlinx.coroutines.*
-import java.nio.charset.Charset
-import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -174,7 +172,7 @@ class WritingFragment : Fragment() {
 
         var job = Job() as Job
 
-        runBlocking {
+        CoroutineScope(Dispatchers.IO).launch {
             job = launch(Dispatchers.IO + job) {
                 if (image_view_add_1.drawable != null && imageNames[0] != null)
                     uploadImage(image_view_add_1.tag as Uri, imageNames[0]!!)
@@ -206,10 +204,24 @@ class WritingFragment : Fragment() {
             prModel.content = content
             prModel.registrationTime = registrationTime
             prModel.imageNames = imageNames
+            prModel.pushToken = (activity as MainActivity).currentUserModel.pushToken
 
-            println(TAG + hashString(userId + registrationTime))
+            if (prModel.pushToken == null) {
+                FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        (activity as MainActivity).currentUserModel.pushToken = task.result?.token
+                        prModel.pushToken = task.result?.token
+                        println("${MyInfoFragment.TAG}: Token generated")
+                    } else {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            (activity as MainActivity).showToast("토큰 생성에 실패했습니다.")
+                        }
+                        println("${MyInfoFragment.TAG}: Token generation failed")
+                    }
+                }
+            }
+
             val hashCode = hashString(userId + registrationTime).chunked(16)[0]
-            println(hashCode)
             FirebaseFirestore.getInstance()
                 .collection(PR_LIST)
                 .document(hashCode)

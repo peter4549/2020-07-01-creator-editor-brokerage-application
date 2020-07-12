@@ -11,6 +11,8 @@ class UserModel {
     var age: Int = 0
     var gender: Int = 0
     var pr: String = ""
+    var myChatRooms : MutableList<String?> = mutableListOf()
+    var pushToken: String? = null
 
     fun setData(map: Map<String, Any>) {
         name = map[NAME] as String
@@ -20,6 +22,9 @@ class UserModel {
         age = (map[AGE] as Long).toInt()
         gender = (map[GENDER] as Long).toInt()
         pr = map[PR] as String
+        @Suppress("UNCHECKED_CAST")
+        myChatRooms = map[USER_MY_CHAT_ROOMS] as MutableList<String?>
+        pushToken = map[USER_PUSH_TOKEN] as String?
     }
 
     fun finalize() {  }

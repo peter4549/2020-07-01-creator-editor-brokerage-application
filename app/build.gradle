@@ -35,8 +35,11 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.firebase:firebase-auth:19.3.2'
     implementation 'com.facebook.android:facebook-android-sdk:7.1.0'
+    implementation 'com.google.firebase:firebase-analytics:17.4.4'
     implementation 'com.google.firebase:firebase-firestore:21.5.0'
+    implementation 'com.google.firebase:firebase-messaging:20.2.3'
     implementation 'com.google.firebase:firebase-storage:19.1.1'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
@@ -62,4 +65,10 @@ dependencies {
 
     // GIF
     implementation 'com.facebook.fresco:animated-gif:2.2.0'
+
+    // Gson
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    // OkHttp
+    implementation "com.squareup.okhttp3:okhttp:4.7.2"
 }

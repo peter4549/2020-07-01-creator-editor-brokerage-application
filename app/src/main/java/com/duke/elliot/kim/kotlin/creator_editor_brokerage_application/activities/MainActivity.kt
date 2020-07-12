@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.LoginFragment
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.MyInfoFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.PRListFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.USERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
@@ -27,6 +28,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : FragmentActivity() {
@@ -268,6 +270,22 @@ class MainActivity : FragmentActivity() {
             currentUserModel = UserModel()
             currentUserModel.setData(map)
         }
+
+        checkPushToken()
+    }
+
+    private fun checkPushToken() {
+        if (currentUserModel.pushToken == null) {
+            FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    currentUserModel.pushToken = task.result?.token
+                    println("${MyInfoFragment.TAG}: Token generated")
+                } else {
+                    showToast("토큰 생성에 실패했습니다.")
+                    println("${MyInfoFragment.TAG}: Token generation failed")
+                }
+            }
+        }
     }
 
     fun isCurrentUserModelInitialized() : Boolean = this::currentUserModel.isInitialized
@@ -298,7 +316,6 @@ class MainActivity : FragmentActivity() {
         }
     }
      */
-
 
     companion object {
         const val TAG = "MainActivity"
