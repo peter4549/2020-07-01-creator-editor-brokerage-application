@@ -1,11 +1,10 @@
-package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application
+package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.interfaces
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import kotlin.math.abs
 

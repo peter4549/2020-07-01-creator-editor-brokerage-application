@@ -15,7 +15,10 @@ import kotlinx.android.synthetic.main.item_view_pr.view.*
 
 class PRListAdapter(private val activity: MainActivity,
                     private val containerViewId: Int,
-                    private val prList: List<PRModel>) : RecyclerView.Adapter<PRListAdapter.ViewHolder>() {
+                    private val prList: MutableList<PRModel>) : RecyclerView.Adapter<PRListAdapter.ViewHolder>() {
+
+    inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -41,8 +44,6 @@ class PRListAdapter(private val activity: MainActivity,
         }
     }
 
-    inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
-
     private fun loadImage(simpleDraweeView: SimpleDraweeView, userId: String, imageNames: List<String?>) {
         val storageReference = FirebaseStorage.getInstance().reference
 
@@ -57,6 +58,22 @@ class PRListAdapter(private val activity: MainActivity,
                     }
                 }
     }
+
+    fun insert(pr: PRModel) {
+        prList.add(0, pr)
+        notifyItemInserted(0)
+    }
+
+    fun update(pr: PRModel) {
+        notifyItemChanged(getPosition(pr))
+    }
+
+    fun delete(pr: PRModel) {
+        prList.remove(pr)
+        notifyItemRemoved(getPosition(pr))
+    }
+
+    private fun getPosition(pr: PRModel) = prList.indexOf(pr)
 
     companion object {
         const val TAG = "RecyclerViewAdapter"

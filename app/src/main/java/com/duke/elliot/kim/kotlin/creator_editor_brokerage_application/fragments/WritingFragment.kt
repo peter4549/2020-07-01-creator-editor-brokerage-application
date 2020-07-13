@@ -15,6 +15,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_C
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PRModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.storage.FirebaseStorage
@@ -30,7 +31,6 @@ class WritingFragment : Fragment() {
     private lateinit var selectedCategory: String
     private lateinit var selectedImageView: ImageView
     private val imageNames = mutableListOf<String?>(null, null, null)
-
 
     private val onImageViewClickListener = View.OnClickListener { view ->
         selectedImageView = view as ImageView
@@ -117,16 +117,6 @@ class WritingFragment : Fragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (MainActivity.currentUser != null) {
-            if (!(activity as MainActivity).isCurrentUserModelInitialized())
-                (activity as MainActivity).requestProfileCreation()
-        } else {
-            (activity as MainActivity).requestLogin()
-        }
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -204,22 +194,6 @@ class WritingFragment : Fragment() {
             prModel.content = content
             prModel.registrationTime = registrationTime
             prModel.imageNames = imageNames
-            prModel.pushToken = (activity as MainActivity).currentUserModel.pushToken
-
-            if (prModel.pushToken == null) {
-                FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        (activity as MainActivity).currentUserModel.pushToken = task.result?.token
-                        prModel.pushToken = task.result?.token
-                        println("${MyInfoFragment.TAG}: Token generated")
-                    } else {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            (activity as MainActivity).showToast("토큰 생성에 실패했습니다.")
-                        }
-                        println("${MyInfoFragment.TAG}: Token generation failed")
-                    }
-                }
-            }
 
             val hashCode = hashString(userId + registrationTime).chunked(16)[0]
             FirebaseFirestore.getInstance()
@@ -228,13 +202,9 @@ class WritingFragment : Fragment() {
                 .set(prModel)
                 .addOnCompleteListener {  task ->
                     if (task.isSuccessful)
-                        CoroutineScope(Dispatchers.Main).launch {
-                            (activity as MainActivity).showToast("PR이 등록되었습니다.")
-                        }
+                        showToast(requireContext(), "PR이 등록되었습니다.")
                     else {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            (activity as MainActivity).showToast("등록에 실패했습니다.")
-                        }
+                        showToast(requireContext(), "등록에 실패했습니다.")
                         println("$TAG: ${task.exception}")
                     }
                 }

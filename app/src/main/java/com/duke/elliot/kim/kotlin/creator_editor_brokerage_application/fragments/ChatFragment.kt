@@ -12,6 +12,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChatMessageModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChatRoomModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.firestore.*
 import kotlinx.android.synthetic.main.fragment_chat.*
 import kotlinx.coroutines.CoroutineScope
@@ -25,22 +26,13 @@ class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
 
     private lateinit var chatMessageAdapter: ChatMessageAdapter
     private lateinit var collectionReference: CollectionReference
+    private var listenerRegistration: ListenerRegistration? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_chat, container, false)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (MainActivity.currentUser != null) {
-            if (!(activity as MainActivity).isCurrentUserModelInitialized())
-                (activity as MainActivity).requestProfileCreation()
-        } else {
-            (activity as MainActivity).requestLogin()
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -63,6 +55,7 @@ class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
     }
 
     private fun readMessages() {
+        /*
         collectionReference.get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val chatMessages =
@@ -80,16 +73,27 @@ class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
                     }
                 }
             }
+         */
 
-        collectionReference.addSnapshotListener { value, error ->
+        chatMessageAdapter = ChatMessageAdapter(mutableListOf())
+        recycler_view_chat_messages.apply {
+            setHasFixedSize(true)
+            adapter = chatMessageAdapter
+            layoutManager = LayoutManagerWrapper(context, 1)
+        }
+
+        listenerRegistration = collectionReference.addSnapshotListener { value, error ->
             if (error != null)
                 println("$TAG: $error")
             else {
                 for (change in value!!.documentChanges) {
                     when (change.type) {
-                        DocumentChange.Type.ADDED -> {
-                            // 리사이클러뷰 업데이트 로직.
-                        }
+                        DocumentChange.Type.ADDED ->
+                            chatMessageAdapter.insert(ChatMessageModel(change.document.data))
+                        DocumentChange.Type.MODIFIED ->
+                            chatMessageAdapter.update(ChatMessageModel(change.document.data))
+                        DocumentChange.Type.REMOVED ->
+                            chatMessageAdapter.delete(ChatMessageModel(change.document.data))
                         else -> {  }
                     }
                 }

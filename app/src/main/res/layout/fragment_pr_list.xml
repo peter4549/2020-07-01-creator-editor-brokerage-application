@@ -5,17 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/linear_layout_fragment_pr_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_pr"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
-    </LinearLayout>
 
 </FrameLayout>

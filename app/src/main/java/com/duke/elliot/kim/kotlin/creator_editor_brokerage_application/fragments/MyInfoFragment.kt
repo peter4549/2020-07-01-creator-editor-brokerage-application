@@ -12,6 +12,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_CODE_GALLERY
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.facebook.login.LoginManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -51,7 +52,7 @@ class MyInfoFragment : Fragment() {
         button_verification.setOnClickListener {
             (activity as MainActivity)
                 .startFragment(PhoneAuthFragment(),
-                    R.id.my_info_fragment_container_view,
+                    R.id.frame_layout_fragment_my_info,
                     MainActivity.PHONE_AUTH_FRAGMENT_TAG)
         }
 
@@ -72,9 +73,8 @@ class MyInfoFragment : Fragment() {
                 updateUI((activity as MainActivity).currentUserModel)
             else
                 clearUI()
-        } else {
+        } else
             clearUI()
-        }
 
         if (!(activity as MainActivity).isCurrentUserModelInitialized() ||
             (activity as MainActivity).currentUserModel.isVerified) {
@@ -190,6 +190,7 @@ class MyInfoFragment : Fragment() {
         val pr = (edit_text_pr.text ?: "").toString()
 
         userModel.name = name
+        userModel.userId = MainActivity.currentUser?.uid.toString()
         userModel.publicName = publicName
         userModel.isVerified = false
         userModel.phoneNumber = phoneNumber
@@ -197,40 +198,33 @@ class MyInfoFragment : Fragment() {
         userModel.gender = gender
         userModel.pr = pr
 
-        var job = Job() as Job
+        val job = Job() as Job
+        CoroutineScope(Dispatchers.IO + job).launch {
+            FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    userModel.pushToken = task.result?.token  // Set pushToken
+                    println("$TAG: Token generated")
 
-        CoroutineScope(Dispatchers.IO).launch {
-            job = launch(Dispatchers.IO + job) {
-                FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        userModel.pushToken = task.result?.token
-                        println("$TAG: Token generated")
-                    } else {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            (activity as MainActivity).showToast("토큰 생성에 실패했습니다.")
+                    FirebaseFirestore.getInstance()
+                        .collection(USERS)
+                        .document(MainActivity.currentUser?.uid.toString())
+                        .set(userModel)
+                        .addOnCompleteListener { setTask ->
+                            if (setTask.isSuccessful) {
+                                updateUI(userModel)
+                                (activity as MainActivity).currentUserModel = userModel
+                            } else {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    (activity as MainActivity).showToast("데이터 저장에 실패했습니다.")
+                                }
+                                println("$TAG: ${setTask.exception}")
+                            }
                         }
-                        println("$TAG: Token generation failed")
-                    }
+                } else {
+                    showToast(requireContext(), "토큰 생성에 실패했습니다.")
+                    println("$TAG: Token generation failed")
                 }
             }
-
-            job.join()
-
-            FirebaseFirestore.getInstance()
-                .collection(USERS)
-                .document(MainActivity.currentUser?.uid.toString())
-                .set(userModel)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        updateUI(userModel)
-                        (activity as MainActivity).currentUserModel = userModel
-                    } else {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            (activity as MainActivity).showToast("데이터 저장에 실패했습니다.")
-                        }
-                        println("$TAG: ${task.exception}")
-                    }
-                }
         }
     }
 
@@ -238,7 +232,6 @@ class MyInfoFragment : Fragment() {
         FirebaseAuth.getInstance().signOut()
         googleSignInClient?.signOut()
         LoginManager.getInstance().logOut()
-        (activity as MainActivity).eventAfterLogout()
     }
 
     companion object {

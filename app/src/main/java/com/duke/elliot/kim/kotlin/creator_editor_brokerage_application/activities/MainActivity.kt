@@ -13,10 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.LoginFragment
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.MyInfoFragment
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.PRListFragment
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.USERS
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.facebook.CallbackManager
 import com.facebook.drawee.backends.pipeline.Fresco
@@ -26,14 +23,19 @@ import com.facebook.imagepipeline.core.MemoryChunkType
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.auth.User
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : FragmentActivity() {
 
+    lateinit var chatRoomsFragment: ChatRoomsFragment
     lateinit var currentUserModel: UserModel
+    lateinit var firebaseAuth: FirebaseAuth
+    private lateinit var authStateListener: AuthStateListener
     private var selectedTabIndex = 0
     val callbackManager: CallbackManager? = CallbackManager.Factory.create()
     val prListFragment = PRListFragment()
@@ -50,6 +52,18 @@ class MainActivity : FragmentActivity() {
 
         // printHashKey(this)
 
+        firebaseAuth = FirebaseAuth.getInstance()
+        authStateListener = AuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            if (user != null)
+                eventAfterLogin(user)
+            else
+                eventAfterLogout()
+        }
+
+        initFragments()
+        initViewPagerAndTabLayout()
+
         Fresco.initialize(
             applicationContext,
             ImagePipelineConfig.newBuilder(applicationContext)
@@ -57,38 +71,54 @@ class MainActivity : FragmentActivity() {
                 .setImageTranscoderType(ImageTranscoderType.JAVA_TRANSCODER)
                 .experiment().setNativeCodeDisabled(true)
                 .build())
+    }
 
+    override fun onStart() {
+        super.onStart()
+        firebaseAuth.addAuthStateListener(authStateListener)
+    }
+
+    override fun onStop() {
+        firebaseAuth.removeAuthStateListener(authStateListener)
+        super.onStop()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        callbackManager?.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSIONS_REQUEST_CODE) {
+            if (PackageManager.PERMISSION_GRANTED == grantResults.firstOrNull()) {
+                if (hasReceiveSMSPermissions(this))
+                    println("$TAG: SMS receive permission granted.")
+            } else {
+                if (!hasReceiveSMSPermissions(this))
+                    showToast("SMS 수신 권한을 승인하셔야 본인인증을 진행하실 수 있습니다.")
+            }
+        }
+    }
+
+    override fun onBackPressed() {
+        when {
+            supportFragmentManager.findFragmentByTag(CHAT_FRAGMENT_TAG) != null -> super.onBackPressed()
+            supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null -> super.onBackPressed()
+            supportFragmentManager.findFragmentByTag(PHONE_AUTH_FRAGMENT_TAG) != null -> super.onBackPressed()
+            supportFragmentManager.findFragmentByTag(PR_FRAGMENT_TAG) != null -> super.onBackPressed()
+            view_pager.currentItem == 0 -> {
+                super.onBackPressed()
+            }
+            else -> {
+                view_pager.currentItem = view_pager.currentItem - 1
+            }
+        }
+    }
+
+    private fun initViewPagerAndTabLayout() {
         view_pager.adapter = PagerFragmentStateAdapter(this)
-
-        /*
-        view_pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
-
-            override fun onPageScrollStateChanged(state: Int) {
-                super.onPageScrollStateChanged(state)
-                if (currentUser == null) {
-                    if (tab_layout.selectedTabPosition == 0) {
-                        requestLogin()
-                        view_pager.isUserInputEnabled = false
-                    }
-
-                    tab_layout.getTabAt(0)?.select()
-                }
-            }
-
-            override fun onPageScrolled(
-                position: Int,
-                positionOffset: Float,
-                positionOffsetPixels: Int
-            ) {
-                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
-            }
-
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-            }
-        })
-
-         */
 
         TabLayoutMediator(tab_layout, view_pager) { tab, position ->
             tab.text = tabTexts[position]
@@ -133,53 +163,14 @@ class MainActivity : FragmentActivity() {
         })
     }
 
-    override fun onResume() {
-        super.onResume()
-        currentUser = FirebaseAuth.getInstance().currentUser
-
-        if (currentUser != null) {
-            view_pager.isUserInputEnabled = true
-            readData()
-        } else {
-            view_pager.isUserInputEnabled = false
-        }
+    private fun initFragments() {
+        chatRoomsFragment = ChatRoomsFragment()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        callbackManager?.onActivityResult(requestCode, resultCode, data)
-    }
+    private fun eventAfterLogin(user: FirebaseUser?) {
+        if (supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null)
+            showToast("로그인 되었습니다.")
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSIONS_REQUEST_CODE) {
-            if (PackageManager.PERMISSION_GRANTED == grantResults.firstOrNull()) {
-                if (hasReceiveSMSPermissions(this))
-                    println("$TAG: SMS receive permission granted.")
-            } else {
-                if (!hasReceiveSMSPermissions(this))
-                    showToast("SMS 수신 권한을 승인하셔야 본인인증을 진행하실 수 있습니다.")
-            }
-        }
-    }
-
-    override fun onBackPressed() {
-        when {
-            supportFragmentManager.findFragmentByTag(CHAT_FRAGMENT_TAG) != null -> super.onBackPressed()
-            supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null -> super.onBackPressed()
-            supportFragmentManager.findFragmentByTag(PHONE_AUTH_FRAGMENT_TAG) != null -> super.onBackPressed()
-            supportFragmentManager.findFragmentByTag(PR_FRAGMENT_TAG) != null -> super.onBackPressed()
-            view_pager.currentItem == 0 -> {
-                super.onBackPressed()
-            }
-            else -> {
-                view_pager.currentItem = view_pager.currentItem - 1
-            }
-        }
-    }
-
-    fun eventAfterLogin(user: FirebaseUser?) {
         currentUser = user
         if (currentUser != null)
             readData()
@@ -194,14 +185,16 @@ class MainActivity : FragmentActivity() {
             supportFragmentManager.popBackStackImmediate()
     }
 
-    fun eventAfterLogout() {
+    private fun eventAfterLogout() {
+        if (supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null)
+            showToast("로그아웃 되었습니다.")
+
         currentUser = null
         if (::currentUserModel.isInitialized)
-            currentUserModel.finalize()
+            currentUserModel.clear()
         tab_layout.getTabAt(0)?.select()
         view_pager.isUserInputEnabled = false
         popAllFragments()
-        showToast("로그아웃 되었습니다.")
     }
 
     fun startFragment(fragment: Fragment,
@@ -222,7 +215,7 @@ class MainActivity : FragmentActivity() {
         builder.setTitle("인증 요청")
         builder.setMessage("로그인 및 본인인증을 하셔야 해당 서비스를 이용하실 수 있습니다.")
         builder.setPositiveButton("로그인") { _, _ ->
-            startFragment(LoginFragment(), R.id.main_activity_container_view, LOGIN_FRAGMENT_TAG)
+            startFragment(LoginFragment(), R.id.relative_layout_activity_main, LOGIN_FRAGMENT_TAG)
         }.setNegativeButton("취소") { _, _ -> }
             .create().show()
     }
@@ -232,12 +225,12 @@ class MainActivity : FragmentActivity() {
         builder.setTitle("인증 요청")
         builder.setMessage("본인인증을 하셔야 해당 서비스를 이용하실 수 있습니다.")
         builder.setPositiveButton("본인인증") { _, _ ->
-            startFragment(LoginFragment(), R.id.main_activity_container_view)
+            startFragment(LoginFragment(), R.id.relative_layout_activity_main)
         }.setNegativeButton("취소") { _, _ -> }
             .create().show()
     }
 
-    fun requestProfileCreation() {
+    private fun requestProfileCreation() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("프로필 작성")
         builder.setMessage("프로필이 아직 등록되지 않았습니다. 프로필을 작성해주세요.")
@@ -271,19 +264,38 @@ class MainActivity : FragmentActivity() {
             currentUserModel.setData(map)
         }
 
-        checkPushToken()
+        createToken()
     }
 
-    private fun checkPushToken() {
-        if (currentUserModel.pushToken == null) {
-            FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    currentUserModel.pushToken = task.result?.token
+    private fun createToken() {
+        FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val pushToken = task.result?.token
+
+                if (pushToken != null) {
+                    val map: Map<String, Any> = mapOf(
+                        KEY_USER_PUSH_TOKEN to pushToken
+                    )
+
+                    currentUserModel.pushToken = pushToken
                     println("${MyInfoFragment.TAG}: Token generated")
-                } else {
-                    showToast("토큰 생성에 실패했습니다.")
-                    println("${MyInfoFragment.TAG}: Token generation failed")
-                }
+
+                    FirebaseFirestore.getInstance()
+                        .collection(USERS)
+                        .document(currentUser?.uid.toString())
+                        .update(map).addOnCompleteListener { updateTask ->
+                            if (updateTask.isSuccessful)
+                                println("$TAG: Push token updated")
+                            else {
+                                showToast(this, "토큰을 저장하는 중 문제가 발생했습니다.")
+                                println("$TAG: ${task.exception}")
+                            }
+                        }
+                } else
+                    showToast(this,"토큰 생성에 실패했습니다.")
+            } else {
+                showToast(this, "토큰 생성에 실패했습니다.")
+                println("${MyInfoFragment.TAG}: Token generation failed")
             }
         }
     }

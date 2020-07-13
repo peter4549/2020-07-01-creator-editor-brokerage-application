@@ -11,7 +11,6 @@ class PRModel(map: Map<String, Any>? = null) {
     var content: String
     var imageNames: MutableList<String?>
     var registrationTime: String = ""
-    var pushToken: String? = null
 
     init {
         if (map == null) {
@@ -33,7 +32,6 @@ class PRModel(map: Map<String, Any>? = null) {
             @Suppress("UNCHECKED_CAST")
             imageNames = map[IMAGE_NAMES] as MutableList<String?>
             registrationTime = map[REGISTRATION_TIME] as String
-            pushToken = map[KEY_PUSH_TOKEN] as String?
         }
     }
 
@@ -47,7 +45,6 @@ class PRModel(map: Map<String, Any>? = null) {
         @Suppress("UNCHECKED_CAST")
         imageNames = map[IMAGE_NAMES] as MutableList<String?>
         registrationTime = map[REGISTRATION_TIME] as String
-        pushToken = map[KEY_PUSH_TOKEN] as String?
     }
 
 }

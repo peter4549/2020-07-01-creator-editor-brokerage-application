@@ -5,6 +5,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 class UserModel {
 
     var name: String = ""
+    var userId: String = ""
     var publicName: String = ""
     var isVerified: Boolean = false
     var phoneNumber: String = ""
@@ -16,6 +17,7 @@ class UserModel {
 
     fun setData(map: Map<String, Any>) {
         name = map[NAME] as String
+        userId = map[KEY_USER_ID] as String
         publicName = map[PUBLIC_NAME] as String
         isVerified = map[IS_VERIFIED] as Boolean
         phoneNumber = map[PHONE_NUMBER] as String
@@ -24,8 +26,18 @@ class UserModel {
         pr = map[PR] as String
         @Suppress("UNCHECKED_CAST")
         myChatRooms = map[USER_MY_CHAT_ROOMS] as MutableList<String?>
-        pushToken = map[USER_PUSH_TOKEN] as String?
+        pushToken = map[KEY_USER_PUSH_TOKEN] as String?
     }
 
-    fun finalize() {  }
+    fun clear() {
+        name = ""
+        publicName = ""
+        isVerified = false
+        phoneNumber = ""
+        age = 0
+        gender = 0
+        pr = ""
+        myChatRooms = mutableListOf()
+        pushToken = null
+    }
 }

@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.broadcast_receiver.SmsReceiver
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.interfaces.VerificationListener
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
@@ -21,16 +22,15 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 
-class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
+class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
 
     private val filter = IntentFilter()
     private val smsReceiver = SmsReceiver()
     private val timeout = 60L
     private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     private lateinit var resendingToken: PhoneAuthProvider.ForceResendingToken
-    private var code: String? = null
     private var resend = false
-    private var verificationId: String = ""
+    lateinit var verificationListener: VerificationListener
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,6 +45,16 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        if (MainActivity.currentUser != null) {
+            if (!(activity as MainActivity).isCurrentUserModelInitialized()) {
+                (activity as MainActivity).showToast("먼저 프로필을 작성해주세요.")
+                (activity as MainActivity).onBackPressed()
+            }
+        } else {
+            (activity as MainActivity).showToast("먼저 로그인을 해주세요.")
+            (activity as MainActivity).onBackPressed()
+        }
+
         button_send_code.setOnClickListener {
             if (!resend) {
                 setUpCallbacks()
@@ -58,17 +68,8 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (MainActivity.currentUser != null) {
-            if (!(activity as MainActivity).isCurrentUserModelInitialized()) {
-                (activity as MainActivity).showToast("먼저 프로필을 작성해주세요.")
-                // (activity as MainActivity).supportFragmentManager.popBackStackImmediate()
-            }
-        } else {
-            (activity as MainActivity).showToast("먼저 로그인을 해주세요.")
-            // (activity as MainActivity).supportFragmentManager.popBackStackImmediate()
-        }
+    override fun onStart() {
+        super.onStart()
 
         if (!isSmsReceiverRegistered) {
             requireContext().registerReceiver(smsReceiver, filter)
@@ -85,18 +86,14 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
         super.onStop()
     }
 
-    override fun onVerifyCode(code: String) {
-        if (this.code == code) {
-            println("$TAG: Verification code matches")
-            updateVerification()
-        } else
-            (activity as MainActivity).showToast("인증에 실패하였습니다.")
+    override fun onSetCode(code: String) {
+        verificationListener.onSetCodeFromReceiver(code)
     }
 
     private fun sendCode(phoneNumber: String) {
         CoroutineScope(Dispatchers.IO).launch {
             PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                "+821043352595",
+                PhoneNumberUtils.formatNumberToE164(phoneNumber, COUNTRY_CODE),
                 timeout,
                 TimeUnit.SECONDS,
                 requireActivity(),
@@ -126,7 +123,7 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
     private fun setUpCallbacks() {
         callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(p0: PhoneAuthCredential) {
-                code = p0.smsCode
+                verificationListener.onSetCodeFromFragment(p0.smsCode ?: "")
             }
 
             override fun onVerificationFailed(p0: FirebaseException) {
@@ -136,31 +133,13 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnVerifyCodeListener {
 
             override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(p0, p1)
-
                 (activity as MainActivity).showToast("인증번호가 발송되었습니다.")
+                verificationListener = VerificationListener(requireContext())
                 resendingToken = p1
                 resend = true
             }
 
         }
-    }
-
-    private fun updateVerification() {
-        val map = mutableMapOf<String, Any>()
-        map[IS_VERIFIED] = true
-
-        FirebaseFirestore.getInstance()
-            .collection(USERS)
-            .document(MainActivity.currentUser?.uid.toString())
-            .update(map)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    (activity as MainActivity).showToast("인증되었습니다.")
-                } else {
-                    (activity as MainActivity).showToast("인증정보를 업데이트하는 중 문제가 발생했습니다. \n다시 진행해주십시오.")
-                    println("$TAG: ${task.exception}")
-                }
-            }
     }
 
     companion object {

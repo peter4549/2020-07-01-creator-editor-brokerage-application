@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_CODE_SIGN_IN
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginBehavior
@@ -19,7 +21,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FacebookAuthProvider
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +58,7 @@ class LoginFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == SignUpFragment.REQUEST_CODE_SIGN_IN) {
+        if (requestCode == REQUEST_CODE_SIGN_IN) {
             try {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(data)
                 val account = task.getResult(ApiException::class.java)
@@ -69,13 +70,23 @@ class LoginFragment : Fragment() {
     }
 
     private fun loginWithEmail() {
+        if (edit_text_id.text.isBlank()) {
+            showToast(requireContext(), "아이디를 입력해주세요.")
+            return
+        }
+
+        if (edit_text_password.text.isBlank()) {
+            showToast(requireContext(), "비밀번호를 입력해주세요.")
+            return
+        }
+
         val email = edit_text_id.text.toString()
         val password = edit_text_password.text.toString()
 
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+        (activity as MainActivity).firebaseAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
-                    (activity as MainActivity).eventAfterLogin(task.result?.user)
+                    println("$TAG: Login with email")
                 else
                     CoroutineScope(Dispatchers.Main).launch {
                         (activity as MainActivity).showToast("이메일 로그인에 실패했습니다.")
@@ -91,15 +102,15 @@ class LoginFragment : Fragment() {
         val googleSignInClient = GoogleSignIn.getClient(requireContext(),
             googleSignInOptions)
         val signInIntent = googleSignInClient?.signInIntent
-        startActivityForResult(signInIntent, SignUpFragment.REQUEST_CODE_SIGN_IN)
+        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN)
     }
 
     private fun firebaseAuthWithGoogle(account: GoogleSignInAccount?) {
         val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
-        FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
+        (activity as MainActivity).firebaseAuth.signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
-                (activity as MainActivity).eventAfterLogin(task.result?.user)
+                println("$TAG: Login with Google")
             else
                 CoroutineScope(Dispatchers.Main).launch {
                     (activity as MainActivity).showToast("구글 인증에 실패했습니다.")
@@ -125,16 +136,15 @@ class LoginFragment : Fragment() {
                     (activity as MainActivity).showToast("페이스북 로그인에 실패했습니다.")
                 }
             }
-
         })
     }
 
     private fun firebaseAuthWithFacebook(result: LoginResult?) {
         val credential = FacebookAuthProvider.getCredential(result?.accessToken?.token!!)
-        FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
+        (activity as MainActivity).firebaseAuth.signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
-                (activity as MainActivity).eventAfterLogin(task.result?.user)
+                println("$TAG: Login with Facebook")
             else {
                 CoroutineScope(Dispatchers.Main).launch {
                     (activity as MainActivity).showToast("페이스북 인증에 실패했습니다.")
