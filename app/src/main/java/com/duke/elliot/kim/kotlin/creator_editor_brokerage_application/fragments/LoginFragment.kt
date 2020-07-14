@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_CODE_SIGN_IN
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.REQUEST_CODE_SIGN_IN
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.facebook.FacebookCallback
@@ -88,9 +88,7 @@ class LoginFragment : Fragment() {
                 if (task.isSuccessful)
                     println("$TAG: Login with email")
                 else
-                    CoroutineScope(Dispatchers.Main).launch {
-                        (activity as MainActivity).showToast("이메일 로그인에 실패했습니다.")
-                    }
+                    showToast(requireContext(), "이메일 로그인에 실패했습니다.")
             }
     }
 
@@ -102,7 +100,9 @@ class LoginFragment : Fragment() {
         val googleSignInClient = GoogleSignIn.getClient(requireContext(),
             googleSignInOptions)
         val signInIntent = googleSignInClient?.signInIntent
-        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN)
+        startActivityForResult(signInIntent,
+            REQUEST_CODE_SIGN_IN
+        )
     }
 
     private fun firebaseAuthWithGoogle(account: GoogleSignInAccount?) {
@@ -112,9 +112,7 @@ class LoginFragment : Fragment() {
             if (task.isSuccessful)
                 println("$TAG: Login with Google")
             else
-                CoroutineScope(Dispatchers.Main).launch {
-                    (activity as MainActivity).showToast("구글 인증에 실패했습니다.")
-                }
+                showToast(requireContext(), "구글 인증에 실패했습니다.")
         }
     }
 
@@ -132,9 +130,7 @@ class LoginFragment : Fragment() {
             }
 
             override fun onError(error: FacebookException?) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    (activity as MainActivity).showToast("페이스북 로그인에 실패했습니다.")
-                }
+                showToast(requireContext(), "페이스북 로그인에 실패했습니다.")
             }
         })
     }
@@ -147,7 +143,7 @@ class LoginFragment : Fragment() {
                 println("$TAG: Login with Facebook")
             else {
                 CoroutineScope(Dispatchers.Main).launch {
-                    (activity as MainActivity).showToast("페이스북 인증에 실패했습니다.")
+                    showToast(requireContext(), "페이스북 인증에 실패했습니다.")
                 }
             }
         }

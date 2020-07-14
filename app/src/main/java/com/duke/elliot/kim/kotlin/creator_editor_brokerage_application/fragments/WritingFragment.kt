@@ -11,13 +11,14 @@ import android.view.ViewGroup
 import android.widget.*
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.REQUEST_CODE_GALLERY
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.REQUEST_CODE_GALLERY
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_IMAGES
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PR_LIST
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PRModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PrModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.fragment_writing.*
 import kotlinx.coroutines.*
@@ -131,7 +132,9 @@ class WritingFragment : Fragment() {
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
-        startActivityForResult(intent, REQUEST_CODE_GALLERY)
+        startActivityForResult(intent,
+            REQUEST_CODE_GALLERY
+        )
     }
 
     private fun setImage(uri: Uri) {
@@ -151,12 +154,12 @@ class WritingFragment : Fragment() {
 
     private fun saveData() {
         if (edit_text_title.text.isBlank()) {
-            (activity as MainActivity).showToast("제목을 입력해주세요.")
+            showToast(requireContext(), "제목을 입력해주세요.")
             return
         }
 
         if (selectedCategory == "-") {
-            (activity as MainActivity).showToast("카테고리를 선택해주세요.")
+            showToast(requireContext(), "카테고리를 선택해주세요.")
             return
         }
 
@@ -176,10 +179,10 @@ class WritingFragment : Fragment() {
 
             job.join()
 
-            val prModel = PRModel()
+            val prModel = PrModel()
             val userId = MainActivity.currentUser?.uid!!
             val occupation = ""
-            val publisher = (activity as MainActivity).currentUserModel.publicName
+            val publisherName = MainActivity.currentUserDataModel!!.publicName
             val categoryDocumentName = categoryDocumentNames.getValue(selectedCategory)
             val title = edit_text_title.text.toString()
             val content = (edit_text_content.text ?: "").toString()
@@ -187,7 +190,7 @@ class WritingFragment : Fragment() {
                 SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
 
             prModel.userId = userId
-            prModel.publisher = publisher
+            prModel.publisherName = publisherName
             prModel.occupation = occupation
             prModel.category = categoryDocumentName
             prModel.title = title
@@ -197,7 +200,7 @@ class WritingFragment : Fragment() {
 
             val hashCode = hashString(userId + registrationTime).chunked(16)[0]
             FirebaseFirestore.getInstance()
-                .collection(PR_LIST)
+                .collection(COLLECTION_PR_LIST)
                 .document(hashCode)
                 .set(prModel)
                 .addOnCompleteListener {  task ->
@@ -214,7 +217,7 @@ class WritingFragment : Fragment() {
     private fun uploadImage(uri: Uri, fileName: String) {
         val storageReference =
             FirebaseStorage.getInstance().reference
-                .child(IMAGES)
+                .child(COLLECTION_IMAGES)
                 .child(MainActivity.currentUser!!.uid)
                 .child(fileName)
 

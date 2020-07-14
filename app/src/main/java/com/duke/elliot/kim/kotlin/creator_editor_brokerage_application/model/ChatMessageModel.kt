@@ -1,8 +1,8 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model
 
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.KEY_CHAT_MESSAGE
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.KEY_CHAT_PUBLIC_NAME
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.KEY_CHAT_TIME
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_CHAT_MESSAGE
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_CHAT_PUBLIC_NAME
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_CHAT_TIME
 
 class ChatMessageModel(map: Map<String, Any>? = null) {
     var publicName: String? = null

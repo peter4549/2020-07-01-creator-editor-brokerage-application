@@ -1,6 +1,6 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model
 
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.*
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.*
 
 @Suppress("UNCHECKED_CAST")
 class ChatRoomModel(map: Map<String, Any>? = null) {

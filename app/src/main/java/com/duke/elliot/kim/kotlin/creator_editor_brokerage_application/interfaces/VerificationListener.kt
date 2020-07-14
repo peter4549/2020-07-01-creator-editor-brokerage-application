@@ -2,9 +2,9 @@ package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.interfac
 
 import android.content.Context
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.IS_VERIFIED
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_USER_VERIFIED
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.PhoneAuthFragment
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.USERS
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -44,10 +44,10 @@ class VerificationListener(private val context: Context): OnVerificationListener
 
     private fun updateVerification() {
         val map = mutableMapOf<String, Any>()
-        map[IS_VERIFIED] = true
+        map[KEY_USER_VERIFIED] = true
 
         FirebaseFirestore.getInstance()
-            .collection(USERS)
+            .collection(COLLECTION_USERS)
             .document(MainActivity.currentUser?.uid.toString())
             .update(map)
             .addOnCompleteListener { task ->

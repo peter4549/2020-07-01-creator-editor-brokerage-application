@@ -10,7 +10,7 @@
     android:background="@android:color/white"
     android:clickable="true"
     android:focusable="true"
-    tools:context=".fragments.PRFragment">
+    tools:context=".fragments.PrFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"

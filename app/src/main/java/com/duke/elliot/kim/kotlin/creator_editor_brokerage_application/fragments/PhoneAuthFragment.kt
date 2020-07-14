@@ -11,10 +11,10 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.broadcast_receiver.SmsReceiver
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.interfaces.VerificationListener
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_phone_auth.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,21 +46,21 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
         super.onViewCreated(view, savedInstanceState)
 
         if (MainActivity.currentUser != null) {
-            if (!(activity as MainActivity).isCurrentUserModelInitialized()) {
-                (activity as MainActivity).showToast("먼저 프로필을 작성해주세요.")
+            if (MainActivity.currentUserDataModel == null) {
+                showToast(requireContext(), "먼저 프로필을 작성해주세요.")
                 (activity as MainActivity).onBackPressed()
             }
         } else {
-            (activity as MainActivity).showToast("먼저 로그인을 해주세요.")
+            showToast(requireContext(), "먼저 로그인을 해주세요.")
             (activity as MainActivity).onBackPressed()
         }
 
         button_send_code.setOnClickListener {
             if (!resend) {
                 setUpCallbacks()
-                sendCode((activity as MainActivity).currentUserModel.phoneNumber)
+                sendCode(MainActivity.currentUserDataModel!!.phoneNumber)
             } else
-                resendCode((activity as MainActivity).currentUserModel.phoneNumber)
+                resendCode(MainActivity.currentUserDataModel!!.phoneNumber)
         }
 
         button_test.setOnClickListener {
@@ -127,13 +127,13 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
             }
 
             override fun onVerificationFailed(p0: FirebaseException) {
-                (activity as MainActivity).showToast("인증에 실패했습니다.")
+                showToast(requireContext(), "인증에 실패했습니다.")
                 println("$TAG: ${p0.message}")
             }
 
             override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(p0, p1)
-                (activity as MainActivity).showToast("인증번호가 발송되었습니다.")
+                showToast(requireContext(), "인증번호가 발송되었습니다.")
                 verificationListener = VerificationListener(requireContext())
                 resendingToken = p1
                 resend = true

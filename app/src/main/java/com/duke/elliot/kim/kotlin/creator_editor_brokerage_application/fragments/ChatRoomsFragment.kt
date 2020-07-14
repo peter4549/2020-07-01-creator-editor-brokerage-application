@@ -10,6 +10,8 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.ChatRoomAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_CHAT
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_CHAT_ROOM_MEMBER_IDS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChatRoomModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_chat_rooms.*

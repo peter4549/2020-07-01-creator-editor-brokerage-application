@@ -5,27 +5,28 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.ChatMessageAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_CHAT
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_CHAT_MESSAGES
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChatMessageModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChatRoomModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.firestore.*
 import kotlinx.android.synthetic.main.fragment_chat.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.android.synthetic.main.fragment_pr.view.text_view_public_name
+import kotlinx.android.synthetic.main.item_view_message.view.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
 
-    private lateinit var chatMessageAdapter: ChatMessageAdapter
+    private lateinit var chatMessageRecyclerViewAdapter: ChatMessageRecyclerViewAdapter
     private lateinit var collectionReference: CollectionReference
+    private val publicName = MainActivity.currentUserDataModel?.publicName
     private var listenerRegistration: ListenerRegistration? = null
 
     override fun onCreateView(
@@ -43,11 +44,9 @@ class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
             collectionReference = FirebaseFirestore.getInstance()
                 .collection(COLLECTION_CHAT).document(chatRoom.roomId)
                 .collection(COLLECTION_CHAT_MESSAGES)
-
             readMessages()
-        } else {
+        } else
             button_input.isEnabled = false
-        }
 
         button_input.setOnClickListener {
             sendMessage()
@@ -55,30 +54,10 @@ class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
     }
 
     private fun readMessages() {
-        /*
-        collectionReference.get().addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val chatMessages =
-                        task.result?.documents?.map { ChatMessageModel(it.data!!) } as ArrayList
-                    chatMessageAdapter = ChatMessageAdapter(chatMessages)
-                    recycler_view_chat_messages.apply {
-                        setHasFixedSize(true)
-                        adapter = chatMessageAdapter
-                        layoutManager = LayoutManagerWrapper(context, 1)
-                    }
-                } else {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        (activity as MainActivity).showToast("메시지를 읽어오지 못했습니다.")
-                        println("$TAG: ${task.exception}")
-                    }
-                }
-            }
-         */
-
-        chatMessageAdapter = ChatMessageAdapter(mutableListOf())
+        chatMessageRecyclerViewAdapter = ChatMessageRecyclerViewAdapter(mutableListOf())
         recycler_view_chat_messages.apply {
             setHasFixedSize(true)
-            adapter = chatMessageAdapter
+            adapter = chatMessageRecyclerViewAdapter
             layoutManager = LayoutManagerWrapper(context, 1)
         }
 
@@ -89,11 +68,11 @@ class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
                 for (change in value!!.documentChanges) {
                     when (change.type) {
                         DocumentChange.Type.ADDED ->
-                            chatMessageAdapter.insert(ChatMessageModel(change.document.data))
+                            chatMessageRecyclerViewAdapter.insert(ChatMessageModel(change.document.data))
                         DocumentChange.Type.MODIFIED ->
-                            chatMessageAdapter.update(ChatMessageModel(change.document.data))
+                            chatMessageRecyclerViewAdapter.update(ChatMessageModel(change.document.data))
                         DocumentChange.Type.REMOVED ->
-                            chatMessageAdapter.delete(ChatMessageModel(change.document.data))
+                            chatMessageRecyclerViewAdapter.delete(ChatMessageModel(change.document.data))
                         else -> {  }
                     }
                 }
@@ -106,7 +85,7 @@ class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
             return
 
         val chatMessage = ChatMessageModel()
-        chatMessage.publicName = (activity as MainActivity).currentUserModel.publicName
+        chatMessage.publicName = publicName
         chatMessage.message = edit_text_message.text.toString()
         chatMessage.time = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
 
@@ -114,9 +93,49 @@ class ChatFragment(private val chatRoom: ChatRoomModel? = null) : Fragment() {
             if (task.isSuccessful)
                 println("$TAG: Message sent")
             else {
-                (activity as MainActivity).showToast("메시지 전송에 실패했습니다.")
+                showToast(requireContext(), "메시지 전송에 실패했습니다.")
                 println("$TAG: ${task.exception}")
             }
+        }
+    }
+
+    class ChatMessageRecyclerViewAdapter(private val chatMessages: MutableList<ChatMessageModel>) :
+        RecyclerView.Adapter<ChatMessageRecyclerViewAdapter.ViewHolder>() {
+
+        inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
+
+        override fun onCreateViewHolder(
+            parent: ViewGroup,
+            viewType: Int
+        ): ChatMessageRecyclerViewAdapter.ViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_view_message, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun getItemCount(): Int {
+            return chatMessages.count()
+        }
+
+        override fun onBindViewHolder(holder: ChatMessageRecyclerViewAdapter.ViewHolder, position: Int) {
+            val message = chatMessages[position]
+            holder.view.text_view_public_name.text = message.publicName
+            holder.view.text_view_message.text = message.message
+        }
+
+        private fun getPosition(chatMessage: ChatMessageModel) = chatMessages.indexOf(chatMessage)
+
+        fun insert(chatMessage: ChatMessageModel) {
+            chatMessages.add(chatMessages.size, chatMessage)
+            notifyItemInserted(chatMessages.size)
+        }
+
+        fun update(chatMessage: ChatMessageModel) {
+            notifyItemChanged(getPosition(chatMessage))
+        }
+
+        fun delete(chatMessage: ChatMessageModel) {
+            chatMessages.remove(chatMessage)
+            notifyItemRemoved(getPosition(chatMessage))
         }
     }
 

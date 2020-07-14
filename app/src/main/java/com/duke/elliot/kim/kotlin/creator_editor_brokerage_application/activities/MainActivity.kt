@@ -7,14 +7,16 @@ import android.os.Build
 import android.os.Bundle
 import android.view.MotionEvent
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_USER_PUSH_TOKEN
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.PERMISSIONS_REQUEST_CODE
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.*
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserDataModel
 import com.facebook.CallbackManager
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
@@ -26,19 +28,17 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.auth.User
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : FragmentActivity() {
 
     lateinit var chatRoomsFragment: ChatRoomsFragment
-    lateinit var currentUserModel: UserModel
     lateinit var firebaseAuth: FirebaseAuth
     private lateinit var authStateListener: AuthStateListener
     private var selectedTabIndex = 0
     val callbackManager: CallbackManager? = CallbackManager.Factory.create()
-    val prListFragment = PRListFragment()
+    val prListFragment = PrListFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,16 +47,17 @@ class MainActivity : FragmentActivity() {
         val permissionsRequired = getPermissionsRequired(this)
         if (permissionsRequired.isNotEmpty()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                requestPermissions(permissionsRequired, PERMISSIONS_REQUEST_CODE)
+                requestPermissions(permissionsRequired,
+                    PERMISSIONS_REQUEST_CODE
+                )
         }
 
         // printHashKey(this)
 
         firebaseAuth = FirebaseAuth.getInstance()
         authStateListener = AuthStateListener { firebaseAuth ->
-            val user = firebaseAuth.currentUser
-            if (user != null)
-                eventAfterLogin(user)
+            if (firebaseAuth.currentUser != null)
+                eventAfterLogin(firebaseAuth.currentUser)
             else
                 eventAfterLogout()
         }
@@ -97,7 +98,7 @@ class MainActivity : FragmentActivity() {
                     println("$TAG: SMS receive permission granted.")
             } else {
                 if (!hasReceiveSMSPermissions(this))
-                    showToast("SMS 수신 권한을 승인하셔야 본인인증을 진행하실 수 있습니다.")
+                    showToast(this, "SMS 수신 권한을 승인하셔야 본인인증을 진행하실 수 있습니다.")
             }
         }
     }
@@ -169,7 +170,7 @@ class MainActivity : FragmentActivity() {
 
     private fun eventAfterLogin(user: FirebaseUser?) {
         if (supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null)
-            showToast("로그인 되었습니다.")
+            showToast(this, "로그인 되었습니다.")
 
         currentUser = user
         if (currentUser != null)
@@ -187,11 +188,11 @@ class MainActivity : FragmentActivity() {
 
     private fun eventAfterLogout() {
         if (supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null)
-            showToast("로그아웃 되었습니다.")
+            showToast(this, "로그아웃 되었습니다.")
 
         currentUser = null
-        if (::currentUserModel.isInitialized)
-            currentUserModel.clear()
+        if (currentUserDataModel != null)
+            currentUserDataModel?.clear()
         tab_layout.getTabAt(0)?.select()
         view_pager.isUserInputEnabled = false
         popAllFragments()
@@ -230,7 +231,7 @@ class MainActivity : FragmentActivity() {
             .create().show()
     }
 
-    private fun requestProfileCreation() {
+    fun requestProfileCreation() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("프로필 작성")
         builder.setMessage("프로필이 아직 등록되지 않았습니다. 프로필을 작성해주세요.")
@@ -240,7 +241,7 @@ class MainActivity : FragmentActivity() {
 
     private fun readData() {
         FirebaseFirestore.getInstance()
-            .collection(USERS)
+            .collection(COLLECTION_USERS)
             .document(currentUser?.uid.toString())
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -250,19 +251,17 @@ class MainActivity : FragmentActivity() {
                         else
                             setCurrentUserModel(task.result!!.data as Map<String, Any>)
                 } else {
-                    showToast("데이터를 읽어올 수 없습니다.")
+                    showToast(this, "데이터를 읽어올 수 없습니다.")
                     println("$TAG: ${task.exception}")
                 }
             }
     }
 
     private fun setCurrentUserModel(map: Map<String, Any>) {
-        if (::currentUserModel.isInitialized)
-            currentUserModel.setData(map)
-        else {
-            currentUserModel = UserModel()
-            currentUserModel.setData(map)
-        }
+        if (currentUserDataModel != null)
+            currentUserDataModel?.setData(map)
+        else
+            currentUserDataModel = UserDataModel(map)
 
         createToken()
     }
@@ -277,11 +276,11 @@ class MainActivity : FragmentActivity() {
                         KEY_USER_PUSH_TOKEN to pushToken
                     )
 
-                    currentUserModel.pushToken = pushToken
+                    currentUserDataModel?.pushToken = pushToken
                     println("${MyInfoFragment.TAG}: Token generated")
 
                     FirebaseFirestore.getInstance()
-                        .collection(USERS)
+                        .collection(COLLECTION_USERS)
                         .document(currentUser?.uid.toString())
                         .update(map).addOnCompleteListener { updateTask ->
                             if (updateTask.isSuccessful)
@@ -299,13 +298,6 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
-
-    fun isCurrentUserModelInitialized() : Boolean = this::currentUserModel.isInitialized
-
-    fun showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
-        Toast.makeText(this, text, duration).show()
-    }
-
 
     /*
     // Dq8Gg7LDtrK2P1vH4eJulfzthIY=
@@ -337,7 +329,7 @@ class MainActivity : FragmentActivity() {
         const val PR_FRAGMENT_TAG = "pr_fragment_tag"
 
         var currentUser: FirebaseUser? = null
-        var publicName = "회원"
+        var currentUserDataModel: UserDataModel? = null
 
         private val tabIcons = arrayOf(
             R.drawable.ic_tab_home_24dp,
