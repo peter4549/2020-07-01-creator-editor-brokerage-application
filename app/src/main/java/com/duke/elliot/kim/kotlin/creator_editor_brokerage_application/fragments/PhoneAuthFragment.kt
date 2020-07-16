@@ -28,9 +28,10 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
     private val smsReceiver = SmsReceiver()
     private val timeout = 60L
     private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
-    private lateinit var resendingToken: PhoneAuthProvider.ForceResendingToken
     private var resend = false
+    private var resendingToken: PhoneAuthProvider.ForceResendingToken? = null
     lateinit var verificationListener: VerificationListener
+    private var phoneNumber: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,26 +46,12 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (MainActivity.currentUser != null) {
-            if (MainActivity.currentUserDataModel == null) {
-                showToast(requireContext(), "먼저 프로필을 작성해주세요.")
-                (activity as MainActivity).onBackPressed()
-            }
-        } else {
-            showToast(requireContext(), "먼저 로그인을 해주세요.")
-            (activity as MainActivity).onBackPressed()
-        }
-
         button_send_code.setOnClickListener {
             if (!resend) {
                 setUpCallbacks()
-                sendCode(MainActivity.currentUserDataModel!!.phoneNumber)
+                sendCode(phoneNumber)
             } else
-                resendCode(MainActivity.currentUserDataModel!!.phoneNumber)
-        }
-
-        button_test.setOnClickListener {
-            (activity as MainActivity).onBackPressed()
+                resendCode(phoneNumber)
         }
     }
 
@@ -75,6 +62,12 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
             requireContext().registerReceiver(smsReceiver, filter)
             isSmsReceiverRegistered = true
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        resend = false
+        resendingToken = null
     }
 
     override fun onStop() {
@@ -90,6 +83,10 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
         verificationListener.onSetCodeFromReceiver(code)
     }
 
+    fun setPhoneNumber(phoneNumber: String) {
+        this.phoneNumber = phoneNumber
+    }
+
     private fun sendCode(phoneNumber: String) {
         CoroutineScope(Dispatchers.IO).launch {
             PhoneAuthProvider.getInstance().verifyPhoneNumber(
@@ -98,11 +95,6 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
                 TimeUnit.SECONDS,
                 requireActivity(),
                 callbacks
-            // PhoneNumberUtils.formatNumberToE164(phoneNumber, COUNTRY_CODE)
-            // 잘못된 양식의 번호로 보낼 시, 콜백에서 인증실패 로직은 동작함.,, 음..
-            // 제대로 된놈 보냇더니 염병? 실행이 안된다..
-            // 되던게 갑자기 안되니 ... 딱히 바꾼게 없는데. 추가 인증 이런거는 손 안댄거 같은데.
-            // db 밀어보자.
             )
         }
     }
@@ -138,7 +130,6 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
                 resendingToken = p1
                 resend = true
             }
-
         }
     }
 

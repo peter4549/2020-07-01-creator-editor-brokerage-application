@@ -1,23 +1,26 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model
 
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_CHAT_MESSAGE
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_CHAT_PUBLIC_NAME
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_CHAT_TIME
-
 class ChatMessageModel(map: Map<String, Any>? = null) {
-    var publicName: String? = null
+
     var message: String
+    var senderName: String
     var time: String
 
     init {
         if (map == null) {
             message = ""
+            senderName = ""
             time = ""
         } else {
-            publicName = map[KEY_CHAT_PUBLIC_NAME] as String?
-            message = map[KEY_CHAT_MESSAGE] as String
-            time = map[KEY_CHAT_TIME] as String
+            message = map[KEY_MESSAGE] as String
+            senderName = map[KEY_SENDER_NAME] as String
+            time = map[KEY_TIME] as String
         }
     }
 
+    companion object {
+        const val KEY_MESSAGE = "message"
+        const val KEY_SENDER_NAME = "senderName"
+        const val KEY_TIME = "time"
+    }
 }

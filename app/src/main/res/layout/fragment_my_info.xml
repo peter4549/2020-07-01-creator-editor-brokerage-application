@@ -20,29 +20,60 @@
         android:layout_marginTop="?attr/actionBarSize"
         android:orientation="vertical">
 
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="100dp">
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:text="Create Profile"
+            android:textSize="36sp"
+            android:textStyle="bold"/>
 
             <com.facebook.drawee.view.SimpleDraweeView
                 android:id="@+id/simple_drawee_view_profile"
-                android:layout_width="100dp"
-                android:layout_height="match_parent"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center_horizontal"
                 android:padding="16dp"
                 android:clickable="true"
                 android:focusable="true"
                 fresco:placeholderImage="@drawable/ic_add_profile_picture_48dp"
                 fresco:roundedCornerRadius="8dp"/>
 
-            <EditText
-                android:id="@+id/edit_text_name"
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/edit_text_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_vertical"
+                    android:padding="8dp"
+                    android:hint="이름"
+                    android:textColor="@android:color/black"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/edit_text_phone_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:padding="8dp"
+                    android:hint="휴대폰 번호"
+                    android:inputType="phone"
+                    android:textColor="@android:color/black"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/button_verification"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_gravity="center_vertical"
-                android:hint="이름"
-                android:textColor="@android:color/black"/>
-
-        </LinearLayout>
+                android:text="본인인증"/>
 
         <EditText
             android:id="@+id/edit_text_public_name"
@@ -51,62 +82,6 @@
             android:layout_gravity="center_vertical"
             android:hint="공개용 이름"
             android:textColor="@android:color/black"/>
-
-        <EditText
-            android:id="@+id/edit_text_phone_number"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:hint="휴대폰 번호"
-            android:inputType="numberDecimal"
-            android:textColor="@android:color/black"/>
-
-        <EditText
-            android:id="@+id/edit_text_age"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:hint="나이"
-            android:inputType="numberDecimal"
-            android:textColor="@android:color/black"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.4"
-                android:gravity="center"
-                android:text="성별"/>
-
-            <RadioGroup
-                android:id="@+id/radio_group_gender"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.6"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/radio_button_male"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layoutDirection="rtl"
-                    android:gravity="center"
-                    android:text="남"/>
-
-                <RadioButton
-                    android:id="@+id/radio_button_female"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layoutDirection="rtl"
-                    android:gravity="center"
-                    android:text="여"/>
-
-            </RadioGroup>
-
-        </LinearLayout>
 
         <EditText
             android:id="@+id/edit_text_pr"
@@ -124,17 +99,11 @@
             android:text="저장"/>
 
         <Button
-            android:id="@+id/button_verification"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="본인인증"/>
-
-        <Button
             android:id="@+id/button_logout"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:text="로그아웃"/>
 
-    </LinearLayout>
+        </LinearLayout>
 
 </FrameLayout>

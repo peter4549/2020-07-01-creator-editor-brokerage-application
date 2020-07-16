@@ -11,17 +11,13 @@ import androidx.fragment.app.Fragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity.Companion.CHAT_FRAGMENT_TAG
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity.Companion.currentUser
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.*
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.gson.Gson
-import com.squareup.okhttp.*
 import kotlinx.android.synthetic.main.fragment_pr.*
 import kotlinx.coroutines.*
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -56,13 +52,13 @@ class PrFragment : Fragment() {
 
         text_view_name.text = pr.title
 
-        if (pr.userId == currentUser?.uid) {
+        if (pr.publisherId == FirebaseAuth.getInstance().currentUser?.uid) {
             disableFab()
         } else {
             fab_unfold.setOnClickListener {
-                if (MainActivity.currentUserDataModel == null)
+                if (MainActivity.currentUser == null)
                     (activity as MainActivity).requestProfileCreation()
-                else if (!MainActivity.currentUserDataModel!!.isVerified)
+                else if (!MainActivity.currentUser!!.verified)
                     (activity as MainActivity).requestAuthentication()
                 else
                     animateFab()
@@ -117,12 +113,10 @@ class PrFragment : Fragment() {
     }
 
     private fun checkExistingRooms() {
-        val myUid = currentUser?.uid.toString()
-
         FirebaseFirestore.getInstance()
             .collection(COLLECTION_CHAT).whereEqualTo(
-                KEY_CHAT_ROOM_PUBLISHER_ID, pr.userId)
-            .whereArrayContains(KEY_CHAT_ROOM_MEMBER_IDS, myUid)
+                ChatRoomModel.KEY_PUBLISHER_ID, pr.publisherId)
+            .whereArrayContains(ChatRoomModel.KEY_USER_IDS, FirebaseAuth.getInstance().currentUser?.uid.toString())
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     existingChatRooms = task.result?.documents?.map { ChatRoomModel(it.data!!) }
@@ -131,17 +125,18 @@ class PrFragment : Fragment() {
                 }
 
                 val creationTime = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
-                val room = hashString(currentUser?.uid + pr.userId + creationTime).chunked(16)[0]
+                val room = hashString(FirebaseAuth.getInstance().currentUser?.uid +
+                        pr.publisherId + creationTime).chunked(16)[0]
 
                 if (existingChatRooms != null) {
                     when {
-                        existingChatRooms!!.isEmpty() -> createChatRoom(room, creationTime)
+                        existingChatRooms!!.isEmpty() -> enterNewChatRoom()
                         existingChatRooms!!.count() == 1 -> confirmChatRoomCreation(
                             ONE_EXISTING_CHAT_ROOM, room, creationTime)
                         else -> confirmChatRoomCreation(SEVERAL_EXISTING_CHAT_ROOM, room , creationTime)
                     }
                 } else
-                    createChatRoom(room, creationTime)
+                    enterNewChatRoom()
             }
     }
 
@@ -162,132 +157,29 @@ class PrFragment : Fragment() {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("채팅방 생성")
         builder.setMessage(message)
-        builder.setPositiveButton("생성") { _, _ -> createChatRoom(room, creationTime) }
+        builder.setPositiveButton("생성") { _, _ -> enterNewChatRoom() }
             .setNeutralButton(neutralButtonText) { _, _ ->
                 if (flag == ONE_EXISTING_CHAT_ROOM)
-                    enterChatRoom(existingChatRooms!![0])
+                    enterExistingChatRoom(existingChatRooms!![0])
                 else if (flag == SEVERAL_EXISTING_CHAT_ROOM)
                     moveToChatRoomsFragment()
             }.create().show()
     }
 
-    private fun createChatRoom(room: String, creationTime: String) {
-        val chatMessage = ChatMessageModel()  // 챗 메시지에 시스템 챗으로, 어댑터에서 퍼블리셔가 널이면
-        // 시스템 알림 메시지로 처리.
-        // 마지막 챗에도 업데이트 하지 않을 것.
-        chatMessage.publicName = null
-        chatMessage.message = "init"
-        chatMessage.time = creationTime
 
-        FirebaseFirestore.getInstance()
-            .collection(COLLECTION_CHAT)
-            .document(room)
-            .collection(COLLECTION_CHAT_MESSAGES)
-            .document("init").set(chatMessage)
-            .addOnCompleteListener {  task ->
-                if (task.isSuccessful) {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        showToast(requireContext(), "채팅방이 생성되었습니다.")
-                        sendFcm(room)
-                    }
 
-                    val chatRoom = ChatRoomModel()
-                    chatRoom.roomId = room
-                    chatRoom.memberIds = mutableListOf(currentUser?.uid, pr.userId)
-                    chatRoom.creationTime = creationTime
-                    chatRoom.publisherId = pr.userId
-                    chatRoom.memberPublicNames =
-                        mutableListOf(MainActivity.currentUserDataModel!!.publicName, pr.publisherName)
-
-                    FirebaseFirestore.getInstance()
-                        .collection(COLLECTION_CHAT)
-                        .document(room).set(chatRoom)
-
-                    updateUserChatRooms(room)  // Update chat room name information in the user model
-                    (activity as MainActivity)
-                        .startFragment(ChatFragment(chatRoom), R.id.relative_layout_activity_main, CHAT_FRAGMENT_TAG)
-                } else {
-                    showToast(requireContext(), "채팅방 생성에 실패했습니다.")
-                    println("$TAG: ${task.exception}")
-                }
-            }
+    private fun enterExistingChatRoom(chatRoom: ChatRoomModel) {
+        (activity as MainActivity)
+            .startFragment(ChatFragment(chatRoom, pr), R.id.relative_layout_activity_main, CHAT_FRAGMENT_TAG)
     }
 
-    private fun enterChatRoom(chatRoom: ChatRoomModel) {
+    private fun enterNewChatRoom() {
         (activity as MainActivity)
-            .startFragment(ChatFragment(chatRoom), R.id.relative_layout_activity_main, CHAT_FRAGMENT_TAG)
+            .startFragment(ChatFragment(pr = pr), R.id.relative_layout_activity_main, CHAT_FRAGMENT_TAG)
     }
 
     private fun moveToChatRoomsFragment() {
 
-    }
-
-    private fun updateUserChatRooms(room: String) {
-        val map = mutableMapOf<String, Any>()
-
-        MainActivity.currentUserDataModel?.myChatRooms?.add(room)
-        map[KEY_USER_CHAT_ROOMS] = MainActivity.currentUserDataModel!!.myChatRooms
-        FirebaseFirestore.getInstance().collection(COLLECTION_USERS)
-            .document(currentUser!!.uid).update(map).addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    println("$TAG: Chat rooms updated")
-                } else {
-                    showToast(requireContext(), "채팅방 정보 업데이트에 실패했습니다.")
-                    println("$TAG: ${task.exception}")
-                }
-            }
-    }
-
-    private fun sendFcm(roomId: String) {
-        FirebaseFirestore.getInstance()
-            .collection(COLLECTION_USERS).whereEqualTo(
-                KEY_USER_ID, pr.userId)
-            .get().addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val map = task.result?.documents?.get(0)?.data
-                    if (map != null) {
-                        val pushToken = map[KEY_PUSH_TOKEN] as String
-                        sendPushMessage(pushToken, roomId)
-                        println("$TAG: Publisher ID found")
-                    } else
-                        showToast(requireContext(), "퍼블리셔를 찾을 수 없습니다.")
-                } else {
-                    showToast(requireContext(), "퍼블리셔를 찾을 수 없습니다.")
-                    println("$TAG: ${task.exception}")
-                }
-        }
-    }
-
-    private fun sendPushMessage(pushToken: String, roomId: String) {
-        val gson = Gson()
-        val text = "${MainActivity.currentUserDataModel?.publicName}님께서 대화를 요청하셨습니다."
-        val notificationModel = CloudMessageModel()
-
-        notificationModel.to = pushToken
-        notificationModel.notification.title = "대화 요청 알림"
-        notificationModel.notification.text = text
-        notificationModel.data.roomId = roomId
-
-        val requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf8"), gson.toJson(notificationModel))
-        val request = Request.Builder().header("Content-Type", "application/json")
-            .addHeader("Authorization",
-                "key=AAAAi-iss7Q:APA91bEBStlhkp7asJn72PEZUtMvql_1oLb_LC5DfJ-RwpaRUQYrPJR1WEGAZXqCPQ5eqqBdQtdA5MM0J2oJQSSNi27BxiNCuIaaySVyXhYr1mMdIlJoCFtJboy2ydOjfLy59Fj_Khmu")
-            .url("https://fcm.googleapis.com/fcm/send")
-            .post(requestBody)
-            .build()
-
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object: Callback {
-            override fun onFailure(request: Request?, e: IOException?) {
-                showToast(requireContext(), "채팅 요청에 실패했습니다.")
-                println("$TAG: ${e?.message}")
-            }
-
-            override fun onResponse(response: Response?) {
-                showToast(requireContext(), "채팅을 요청했습니다.")
-                println("$TAG: $response")
-            }
-        })
     }
 
     companion object {

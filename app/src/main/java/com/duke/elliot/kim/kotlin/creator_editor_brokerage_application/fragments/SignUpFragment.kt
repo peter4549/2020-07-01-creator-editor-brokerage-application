@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.*
@@ -35,6 +36,8 @@ class SignUpFragment : Fragment() {
         val id = edit_text_id.text.toString()
         val password = edit_text_password.text.toString()
 
+        MainActivity.signUp = true
+
         when {
             id.isBlank() -> showToast(requireContext(), "이메일을 입력해주세요.")
             password.isBlank() -> showToast(requireContext(), "비밀번호를 입력해주세요.")
@@ -42,7 +45,7 @@ class SignUpFragment : Fragment() {
                 FirebaseAuth.getInstance().createUserWithEmailAndPassword(id, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful)
-                            showToast(requireContext(), "아이디가 생성되었습니다.")
+                            println("$TAG: Account created")
                         else
                             showExceptionMessage(task)
                     }
@@ -65,5 +68,9 @@ class SignUpFragment : Fragment() {
         } catch (e: Exception) {
             showToast(requireContext(), "아이디 생성에 실패했습니다.")
         }
+    }
+
+    companion object {
+        const val TAG = "SignUpFragment"
     }
 }

@@ -14,36 +14,41 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PR_LIST
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PrModel
 import com.facebook.drawee.view.SimpleDraweeView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.fragment_pr_list.*
+import kotlinx.android.synthetic.main.fragment_pr_list.view.*
 import kotlinx.android.synthetic.main.item_view_pr.view.*
 
 class PrListFragment : Fragment() {
 
-    lateinit var prListAdapter: PrListAdapter
+    lateinit var prListRecyclerViewAdapter: PrListRecyclerViewAdapter
     private lateinit var collectionReference: CollectionReference
+    private lateinit var listenerRegistration: ListenerRegistration
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        val view = inflater.inflate(R.layout.fragment_pr_list, container, false)
+        initRecyclerView(view.recycler_view_pr)
+
         collectionReference = FirebaseFirestore.getInstance().collection(COLLECTION_PR_LIST)
-        return inflater.inflate(R.layout.fragment_pr_list, container, false)
+        setPrListener()
+
+        return view
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        readPr()
-
-        if (MainActivity.currentUser == null) {
+    override fun onResume() {
+        super.onResume()
+        if (FirebaseAuth.getInstance().currentUser == null) {
             recycler_view_pr.isLongClickable = true
             recycler_view_pr.setOnTouchListener(
-                OnSwipeTouchListener(
-                    requireActivity()
-                )
+                OnSwipeTouchListener(requireActivity())
             )
         } else {
             recycler_view_pr.isLongClickable = false
@@ -51,23 +56,25 @@ class PrListFragment : Fragment() {
         }
     }
 
-    private fun readPr() {
-        prListAdapter = PrListAdapter(mutableListOf())
-        recycler_view_pr.apply {
+    private fun initRecyclerView(recyclerView: RecyclerView) {
+        prListRecyclerViewAdapter = PrListRecyclerViewAdapter(mutableListOf())
+        recyclerView.apply {
             setHasFixedSize(true)
-            adapter = prListAdapter
+            adapter = prListRecyclerViewAdapter
             layoutManager = LayoutManagerWrapper(context, 1)
         }
+    }
 
-        collectionReference.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+    private fun setPrListener() {
+        listenerRegistration = collectionReference.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
             if (firebaseFirestoreException != null)
                 println("$TAG: $firebaseFirestoreException")
             else {
                 for (change in documentSnapshot!!.documentChanges) {
                     when (change.type) {
-                        DocumentChange.Type.ADDED -> prListAdapter.insert(PrModel(change.document.data))
-                        DocumentChange.Type.MODIFIED -> prListAdapter.update(PrModel(change.document.data))
-                        DocumentChange.Type.REMOVED -> prListAdapter.delete(PrModel(change.document.data))
+                        DocumentChange.Type.ADDED -> prListRecyclerViewAdapter.insert(PrModel(change.document.data))
+                        DocumentChange.Type.MODIFIED -> prListRecyclerViewAdapter.update(PrModel(change.document.data))
+                        DocumentChange.Type.REMOVED -> prListRecyclerViewAdapter.delete(PrModel(change.document.data))
                         else -> { println("$TAG: Unexpected DocumentChange Type") }
                     }
                 }
@@ -75,15 +82,20 @@ class PrListFragment : Fragment() {
         }
     }
 
-    inner class PrListAdapter(
-                        private val prList: MutableList<PrModel>) : RecyclerView.Adapter<PrListAdapter.ViewHolder>() {
+    fun removePrListener() {
+        if (::listenerRegistration.isInitialized)
+            listenerRegistration.remove()
+    }
+
+    inner class PrListRecyclerViewAdapter(
+                        private val prList: MutableList<PrModel>) : RecyclerView.Adapter<PrListRecyclerViewAdapter.ViewHolder>() {
 
         inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 
         override fun onCreateViewHolder(
             parent: ViewGroup,
             viewType: Int
-        ): PrListAdapter.ViewHolder {
+        ): PrListRecyclerViewAdapter.ViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.item_view_pr, parent, false)
             return ViewHolder(view)
         }
@@ -92,13 +104,13 @@ class PrListFragment : Fragment() {
             return prList.size
         }
 
-        override fun onBindViewHolder(holder: PrListAdapter.ViewHolder, position: Int) {
+        override fun onBindViewHolder(holder: PrListRecyclerViewAdapter.ViewHolder, position: Int) {
             val pr = prList[position]
             holder.view.text_view_title.text = pr.title
             // holder.view.text_view_publisher = prList[position].get
             @Suppress("UNCHECKED_CAST")
             loadImage(holder.view.simple_drawee_view_pr,
-                pr.userId, pr.imageNames as List<String?>)
+                pr.publisherId, pr.imageNames as List<String?>)
 
             holder.view.setOnClickListener {
                 val prFragment = PrFragment()

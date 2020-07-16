@@ -21,6 +21,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FacebookAuthProvider
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.CoroutineScope
@@ -83,7 +84,7 @@ class LoginFragment : Fragment() {
         val email = edit_text_id.text.toString()
         val password = edit_text_password.text.toString()
 
-        (activity as MainActivity).firebaseAuth.signInWithEmailAndPassword(email, password)
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
                     println("$TAG: Login with email")
@@ -100,14 +101,13 @@ class LoginFragment : Fragment() {
         val googleSignInClient = GoogleSignIn.getClient(requireContext(),
             googleSignInOptions)
         val signInIntent = googleSignInClient?.signInIntent
-        startActivityForResult(signInIntent,
-            REQUEST_CODE_SIGN_IN
-        )
+
+        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN)
     }
 
     private fun firebaseAuthWithGoogle(account: GoogleSignInAccount?) {
         val credential = GoogleAuthProvider.getCredential(account?.idToken, null)
-        (activity as MainActivity).firebaseAuth.signInWithCredential(credential).addOnCompleteListener {
+        FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
                 println("$TAG: Login with Google")
@@ -137,15 +137,12 @@ class LoginFragment : Fragment() {
 
     private fun firebaseAuthWithFacebook(result: LoginResult?) {
         val credential = FacebookAuthProvider.getCredential(result?.accessToken?.token!!)
-        (activity as MainActivity).firebaseAuth.signInWithCredential(credential).addOnCompleteListener {
+        FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
                 println("$TAG: Login with Facebook")
-            else {
-                CoroutineScope(Dispatchers.Main).launch {
-                    showToast(requireContext(), "페이스북 인증에 실패했습니다.")
-                }
-            }
+            else
+                showToast(requireContext(), "페이스북 인증에 실패했습니다.")
         }
     }
 

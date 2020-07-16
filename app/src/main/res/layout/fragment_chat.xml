@@ -29,6 +29,7 @@
                 android:layout_weight="1"
                 android:autofillHints="Chat message"
                 android:inputType="text"
+                android:textColor="@android:color/black"
                 tools:ignore="LabelFor" />
 
             <Button

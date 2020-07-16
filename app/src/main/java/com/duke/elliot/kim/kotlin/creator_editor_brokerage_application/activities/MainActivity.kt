@@ -12,11 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.KEY_USER_PUSH_TOKEN
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.PERMISSIONS_REQUEST_CODE
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.*
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserDataModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.facebook.CallbackManager
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
@@ -34,8 +33,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : FragmentActivity() {
 
     lateinit var chatRoomsFragment: ChatRoomsFragment
-    lateinit var firebaseAuth: FirebaseAuth
     private lateinit var authStateListener: AuthStateListener
+    private lateinit var firebaseAuth: FirebaseAuth
     private var selectedTabIndex = 0
     val callbackManager: CallbackManager? = CallbackManager.Factory.create()
     val prListFragment = PrListFragment()
@@ -62,6 +61,8 @@ class MainActivity : FragmentActivity() {
                 eventAfterLogout()
         }
 
+        firebaseAuth.addAuthStateListener(authStateListener)
+
         initFragments()
         initViewPagerAndTabLayout()
 
@@ -74,14 +75,11 @@ class MainActivity : FragmentActivity() {
                 .build())
     }
 
-    override fun onStart() {
-        super.onStart()
-        firebaseAuth.addAuthStateListener(authStateListener)
-    }
-
-    override fun onStop() {
+    override fun onDestroy() {
         firebaseAuth.removeAuthStateListener(authStateListener)
-        super.onStop()
+
+        prListFragment.removePrListener()
+        super.onDestroy()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -169,30 +167,33 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun eventAfterLogin(user: FirebaseUser?) {
-        if (supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null)
-            showToast(this, "로그인 되었습니다.")
-
-        currentUser = user
-        if (currentUser != null)
+        if (FirebaseAuth.getInstance().currentUser != null)
             readData()
 
-        view_pager.isUserInputEnabled = true
         popAllFragments()
-        tab_layout.getTabAt(selectedTabIndex)?.select()
+        view_pager.isUserInputEnabled = true
     }
 
     private fun popAllFragments() {
-        while(supportFragmentManager.backStackEntryCount > 0)
+        while (supportFragmentManager.backStackEntryCount > 0)
             supportFragmentManager.popBackStackImmediate()
+
+        if (supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null && !signUp) {
+            showToast(this, "로그인 되었습니다.")
+            signUp = false
+        } else if (signUp) {
+            showToast(this, "아이디가 생성되었습니다.")
+            signUp = false
+        }
     }
 
     private fun eventAfterLogout() {
         if (supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null)
             showToast(this, "로그아웃 되었습니다.")
 
-        currentUser = null
-        if (currentUserDataModel != null)
-            currentUserDataModel?.clear()
+        signUp = false
+        if (currentUser != null)
+            currentUser = null
         tab_layout.getTabAt(0)?.select()
         view_pager.isUserInputEnabled = false
         popAllFragments()
@@ -216,7 +217,7 @@ class MainActivity : FragmentActivity() {
         builder.setTitle("인증 요청")
         builder.setMessage("로그인 및 본인인증을 하셔야 해당 서비스를 이용하실 수 있습니다.")
         builder.setPositiveButton("로그인") { _, _ ->
-            startFragment(LoginFragment(), R.id.relative_layout_activity_main, LOGIN_FRAGMENT_TAG)
+                startFragment(LoginFragment(), R.id.relative_layout_activity_main, LOGIN_FRAGMENT_TAG)
         }.setNegativeButton("취소") { _, _ -> }
             .create().show()
     }
@@ -242,7 +243,7 @@ class MainActivity : FragmentActivity() {
     private fun readData() {
         FirebaseFirestore.getInstance()
             .collection(COLLECTION_USERS)
-            .document(currentUser?.uid.toString())
+            .document(firebaseAuth.currentUser?.uid.toString())
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     if (task.result != null)
@@ -258,10 +259,10 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun setCurrentUserModel(map: Map<String, Any>) {
-        if (currentUserDataModel != null)
-            currentUserDataModel?.setData(map)
+        if (currentUser != null)
+            currentUser?.setData(map)
         else
-            currentUserDataModel = UserDataModel(map)
+            currentUser = UserModel(map)
 
         createToken()
     }
@@ -272,16 +273,16 @@ class MainActivity : FragmentActivity() {
                 val pushToken = task.result?.token
 
                 if (pushToken != null) {
-                    val map: Map<String, Any> = mapOf(
-                        KEY_USER_PUSH_TOKEN to pushToken
+                    val map = mapOf(
+                        UserModel.KEY_PUSH_TOKEN to pushToken
                     )
 
-                    currentUserDataModel?.pushToken = pushToken
+                    currentUser?.pushToken = pushToken
                     println("${MyInfoFragment.TAG}: Token generated")
 
                     FirebaseFirestore.getInstance()
                         .collection(COLLECTION_USERS)
-                        .document(currentUser?.uid.toString())
+                        .document(firebaseAuth.currentUser?.uid.toString())
                         .update(map).addOnCompleteListener { updateTask ->
                             if (updateTask.isSuccessful)
                                 println("$TAG: Push token updated")
@@ -328,8 +329,9 @@ class MainActivity : FragmentActivity() {
         const val PHONE_AUTH_FRAGMENT_TAG = "phone_auth_fragment_tag"
         const val PR_FRAGMENT_TAG = "pr_fragment_tag"
 
-        var currentUser: FirebaseUser? = null
-        var currentUserDataModel: UserDataModel? = null
+        //var currentUser: FirebaseUser? = null
+        var currentUser: UserModel? = null
+        var signUp = false
 
         private val tabIcons = arrayOf(
             R.drawable.ic_tab_home_24dp,

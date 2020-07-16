@@ -1,5 +1,6 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.services
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -14,9 +15,12 @@ import com.google.firebase.messaging.RemoteMessage
 
 class FirebaseMessagingService: com.google.firebase.messaging.FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        println("ISTHISHAM!!")
         remoteMessage.data.isNotEmpty().let {
-            println("HelloHamster!")
+            val message = remoteMessage.data["message"] ?: "메시지 오류"
+            val roomId = remoteMessage.data["roomId"]!!  // 이거없으면 심각레베루.
+            val senderPublicName = remoteMessage.data["senderPublicName"] ?: "발신자 오류"
+
+            sendNotification(senderPublicName, message)
         }
     }
 
@@ -26,7 +30,7 @@ class FirebaseMessagingService: com.google.firebase.messaging.FirebaseMessagingS
     }
 
 
-    private fun sendNotification(messageBody: String) {
+    private fun sendNotification(senderPublicName: String, message: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
@@ -36,8 +40,8 @@ class FirebaseMessagingService: com.google.firebase.messaging.FirebaseMessagingS
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_star_64dp)
-            .setContentTitle("Notitest")
-            .setContentText(messageBody)
+            .setContentTitle(senderPublicName)
+            .setContentText(message)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
@@ -47,11 +51,11 @@ class FirebaseMessagingService: com.google.firebase.messaging.FirebaseMessagingS
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(channelId,
                 "Channel human readable title",
-                NotificationManager.IMPORTANCE_DEFAULT)
+                NotificationManager.IMPORTANCE_HIGH)
             notificationManager.createNotificationChannel(channel)
         }
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build())
+        notificationManager.notify(0, notificationBuilder.build())
     }
 
     companion object {

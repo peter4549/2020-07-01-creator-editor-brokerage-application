@@ -1,30 +1,41 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model
 
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.*
-
 @Suppress("UNCHECKED_CAST")
 class ChatRoomModel(map: Map<String, Any>? = null) {
 
-    var roomId: String
-    var memberIds : MutableList<String?> = mutableListOf()
     var creationTime: String
-    var publisherId: String
     var latestMessage: String
-    var memberPublicNames: MutableList<String> = mutableListOf()
+    var publisherId: String
+    var publisherName: String
+    var roomId: String
+    var userIds : MutableList<String> = mutableListOf()
+    var userPublicNames: MutableList<String> = mutableListOf()
 
     init {
         if (map == null) {
-            roomId = ""
             creationTime = ""
-            publisherId = ""
             latestMessage = ""
+            roomId = ""
+            publisherId = ""
+            publisherName = ""
         } else {
-            roomId = map[KEY_CHAT_ROOM_ID] as String
-            creationTime = map[KEY_CHAT_ROOM_CREATION_TIME] as String
-            publisherId = map[KEY_CHAT_ROOM_PUBLISHER_ID] as String
-            latestMessage = map[KEY_CHAT_ROOM_LATEST_MESSAGE] as String
-            memberIds = map[KEY_CHAT_ROOM_MEMBER_IDS] as MutableList<String?>
-            memberPublicNames = map[KEY_CHAT_ROOM_MEMBER_PUBLIC_NAMES] as MutableList<String>
+            creationTime = map[KEY_CREATION_TIME] as String
+            latestMessage = map[KEY_LATEST_MESSAGE] as String
+            publisherId = map[KEY_PUBLISHER_ID] as String
+            publisherName = map[KEY_PUBLISHER_NAME] as String
+            roomId = map[KEY_ROOM_ID] as String
+            userIds = map[KEY_USER_IDS] as MutableList<String>
+            userPublicNames = map[KEY_USER_PUBLIC_NAMES] as MutableList<String>
         }
+    }
+
+    companion object {
+        const val KEY_CREATION_TIME = "creationTime"
+        const val KEY_LATEST_MESSAGE = "latestMessage"
+        const val KEY_PUBLISHER_ID = "publisherId"
+        const val KEY_PUBLISHER_NAME = "publisherName"
+        const val KEY_ROOM_ID = "roomId"
+        const val KEY_USER_IDS = "userIds"
+        const val KEY_USER_PUBLIC_NAMES = "userPublicNames"
     }
 }

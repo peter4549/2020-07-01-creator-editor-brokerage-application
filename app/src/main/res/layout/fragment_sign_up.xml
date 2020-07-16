@@ -29,7 +29,8 @@
             android:layout_margin="6dp"
             android:hint="@string/id"
             android:autofillHints="id"
-            android:inputType="text" />
+            android:inputType="text"
+            android:textColor="@android:color/black"/>
 
         <EditText
             android:id="@+id/edit_text_password"
@@ -38,7 +39,8 @@
             android:layout_margin="6dp"
             android:hint="@string/password"
             android:autofillHints="password"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:textColor="@android:color/black" />
 
         <Button
             android:id="@+id/button_sign_up"

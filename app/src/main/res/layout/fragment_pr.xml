@@ -98,9 +98,9 @@
             android:layout_alignParentBottom="true"
             android:visibility="invisible"
             android:backgroundTint="@color/backgroundColorFab"
-            android:src="@drawable/ic_chat_64dp"
             android:scaleType="center"
-            app:fabSize="normal"/>
+            app:fabSize="normal"
+            app:srcCompat="@drawable/ic_chat_64dp"/>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_interest"
@@ -111,9 +111,9 @@
             android:layout_alignParentBottom="true"
             android:visibility="invisible"
             android:backgroundTint="@color/backgroundColorFab"
-            android:src="@drawable/ic_heart_64dp"
             android:scaleType="center"
-            app:fabSize="normal"/>
+            app:fabSize="normal"
+            app:srcCompat="@drawable/ic_heart_64dp"/>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_star"
@@ -124,21 +124,21 @@
             android:layout_alignParentBottom="true"
             android:visibility="invisible"
             android:backgroundTint="@color/backgroundColorFab"
-            android:src="@drawable/ic_star_64dp"
             android:scaleType="center"
-            app:fabSize="normal"/>
+            app:fabSize="normal"
+            app:srcCompat="@drawable/ic_star_64dp"/>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_unfold"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:layout_marginStart="20dp"
             android:layout_alignParentBottom="true"
             android:backgroundTint="@color/backgroundColorFab"
-            android:src="@drawable/ic_menu_64dp"
             android:scaleType="center"
-            app:fabSize="normal" />
+            app:fabSize="auto"
+            app:srcCompat="@drawable/ic_menu_64dp"/>
 
     </RelativeLayout>
 

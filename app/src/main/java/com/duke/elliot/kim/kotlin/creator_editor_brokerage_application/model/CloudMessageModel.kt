@@ -8,6 +8,8 @@ class CloudMessageModel {
 
     class Data {
         var roomId: String = ""
+        var senderPublicName: String = ""
+        var message: String = ""
     }
 
     class Notification {

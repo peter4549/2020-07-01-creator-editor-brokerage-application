@@ -180,16 +180,16 @@ class WritingFragment : Fragment() {
             job.join()
 
             val prModel = PrModel()
-            val userId = MainActivity.currentUser?.uid!!
+            val userId = MainActivity.currentUser!!.id
             val occupation = ""
-            val publisherName = MainActivity.currentUserDataModel!!.publicName
+            val publisherName = MainActivity.currentUser!!.publicName
             val categoryDocumentName = categoryDocumentNames.getValue(selectedCategory)
             val title = edit_text_title.text.toString()
             val content = (edit_text_content.text ?: "").toString()
             val registrationTime =
                 SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
 
-            prModel.userId = userId
+            prModel.publisherId = userId
             prModel.publisherName = publisherName
             prModel.occupation = occupation
             prModel.category = categoryDocumentName
@@ -218,7 +218,7 @@ class WritingFragment : Fragment() {
         val storageReference =
             FirebaseStorage.getInstance().reference
                 .child(COLLECTION_IMAGES)
-                .child(MainActivity.currentUser!!.uid)
+                .child(MainActivity.currentUser!!.id)
                 .child(fileName)
 
         storageReference.putFile(uri).continueWithTask {
