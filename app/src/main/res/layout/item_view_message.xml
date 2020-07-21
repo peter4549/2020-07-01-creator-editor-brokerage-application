@@ -9,8 +9,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <com.facebook.drawee.view.SimpleDraweeView
-            android:id="@+id/simple_drawee_view_profile"
+        <ImageView
+            android:id="@+id/image_view_profile"
             android:layout_width="80dp"
             android:layout_height="80dp" />
 

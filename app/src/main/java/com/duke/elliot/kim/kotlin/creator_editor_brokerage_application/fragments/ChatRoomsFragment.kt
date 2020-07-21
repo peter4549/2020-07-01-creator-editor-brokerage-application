@@ -20,9 +20,9 @@ import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.android.synthetic.main.fragment_chat_rooms.*
 import kotlinx.android.synthetic.main.item_view_chat_room.view.*
 
+// 인증해야만 쓸 수 있는 서비로로, 탭 레벨에서 제한할 것.
 class ChatRoomsFragment : Fragment() {
 
-    private lateinit var chatRoomRecyclerViewAdapter: ChatRoomRecyclerViewAdapter
     private lateinit var listenerRegistration: ListenerRegistration
 
     override fun onCreateView(
@@ -34,39 +34,14 @@ class ChatRoomsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setChatRoomListener()
+        initRecyclerView()
     }
 
-    private fun setChatRoomListener() {
-        chatRoomRecyclerViewAdapter = ChatRoomRecyclerViewAdapter(mutableListOf())
+    private fun initRecyclerView() {
         recycler_view_chat_rooms.apply {
             setHasFixedSize(true)
-            adapter = chatRoomRecyclerViewAdapter
+            adapter = ChatRoomRecyclerViewAdapter()
             layoutManager = LayoutManagerWrapper(context, 1)
-        }
-
-        if (FirebaseAuth.getInstance().currentUser != null) {
-            listenerRegistration = FirebaseFirestore.getInstance()
-                .collection(COLLECTION_CHAT)
-                .whereArrayContains(ChatRoomModel.KEY_USER_IDS,
-                    FirebaseAuth.getInstance().currentUser?.uid.toString())
-                .addSnapshotListener { value, error ->
-                    if (error != null)
-                        println("$TAG: $error")
-                    else {
-                        for (change in value!!.documentChanges) {
-                            when (change.type) {
-                                DocumentChange.Type.ADDED ->
-                                    chatRoomRecyclerViewAdapter.insert(ChatRoomModel(change.document.data))
-                                DocumentChange.Type.MODIFIED ->
-                                    chatRoomRecyclerViewAdapter.update(ChatRoomModel(change.document.data))
-                                DocumentChange.Type.REMOVED ->
-                                    chatRoomRecyclerViewAdapter.delete(ChatRoomModel(change.document.data))
-                                else -> {  }
-                            }
-                        }
-                    }
-                }
         }
     }
 
@@ -75,10 +50,16 @@ class ChatRoomsFragment : Fragment() {
             .startFragment(ChatFragment(chatRoom), R.id.frame_layout_chat_rooms, CHAT_FRAGMENT_TAG)
     }
 
-    inner class ChatRoomRecyclerViewAdapter(private val chatRooms: MutableList<ChatRoomModel>):
+    inner class ChatRoomRecyclerViewAdapter :
         RecyclerView.Adapter<ChatRoomRecyclerViewAdapter.ViewHolder>() {
 
+        private val chatRooms = mutableListOf<ChatRoomModel>()
+
         inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
+
+        init {
+            setChatRoomSnapshotListener(this)
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.item_view_chat_room, parent, false)
@@ -113,6 +94,35 @@ class ChatRoomsFragment : Fragment() {
         }
 
         private fun getPosition(chatRoom: ChatRoomModel) = chatRooms.indexOf(chatRoom)
+    }
+
+    private fun setChatRoomSnapshotListener(chatRoomRecyclerViewAdapter: ChatRoomRecyclerViewAdapter) {
+        listenerRegistration = FirebaseFirestore.getInstance()
+            .collection(COLLECTION_CHAT)
+            .whereArrayContains(ChatRoomModel.KEY_USER_IDS,
+                FirebaseAuth.getInstance().currentUser?.uid.toString())
+            .addSnapshotListener { value, error ->
+                if (error != null)
+                    println("$TAG: $error")
+                else {
+                    for (change in value!!.documentChanges) {
+                        when (change.type) {
+                            DocumentChange.Type.ADDED ->
+                                chatRoomRecyclerViewAdapter.insert(ChatRoomModel(change.document.data))
+                            DocumentChange.Type.MODIFIED ->
+                                chatRoomRecyclerViewAdapter.update(ChatRoomModel(change.document.data))
+                            DocumentChange.Type.REMOVED ->
+                                chatRoomRecyclerViewAdapter.delete(ChatRoomModel(change.document.data))
+                            else -> {  }
+                        }
+                    }
+                }
+            }
+    }
+
+    fun removeChatRoomSnapshotListener() {
+        if(::listenerRegistration.isInitialized)
+            listenerRegistration.remove()
     }
 
     companion object {

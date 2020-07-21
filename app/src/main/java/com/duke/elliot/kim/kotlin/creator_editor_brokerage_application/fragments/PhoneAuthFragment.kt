@@ -13,6 +13,8 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.broadcast
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.interfaces.VerificationListener
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import kotlinx.android.synthetic.main.fragment_phone_auth.*
@@ -114,20 +116,28 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
 
     private fun setUpCallbacks() {
         callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-            override fun onVerificationCompleted(p0: PhoneAuthCredential) {
-                verificationListener.onSetCodeFromFragment(p0.smsCode ?: "")
+            override fun onVerificationCompleted(phoneAuthCredential: PhoneAuthCredential) {
+                if (phoneAuthCredential.smsCode != null)
+                    verificationListener.onSetCodeFromFragment(phoneAuthCredential.smsCode!!)
+                else
+                    showToast(requireContext(), "인증번호가 손실되었습니다.")
             }
 
-            override fun onVerificationFailed(p0: FirebaseException) {
-                showToast(requireContext(), "인증에 실패했습니다.")
-                println("$TAG: ${p0.message}")
+            override fun onVerificationFailed(e: FirebaseException) {
+                when(e) {
+                    is FirebaseAuthInvalidCredentialsException -> showToast(requireContext(), "유효하지 않은 요청입니다. 전화번호를 확인해주세요.")
+                    is FirebaseTooManyRequestsException -> showToast(requireContext(), "너무 많은 요청으로 인증요청이 차단되었습니다.\n잠시 후 다시 시도해주십시오.")
+                    else -> showToast(requireContext(), "인증에 실패했습니다.")
+                }
+
+                println("$TAG: ${e.message}")
             }
 
-            override fun onCodeSent(p0: String, p1: PhoneAuthProvider.ForceResendingToken) {
-                super.onCodeSent(p0, p1)
+            override fun onCodeSent(verificationId: String, forceResendingToken: PhoneAuthProvider.ForceResendingToken) {
+                super.onCodeSent(verificationId, forceResendingToken)
                 showToast(requireContext(), "인증번호가 발송되었습니다.")
                 verificationListener = VerificationListener(requireContext())
-                resendingToken = p1
+                resendingToken = forceResendingToken
                 resend = true
             }
         }
@@ -137,7 +147,7 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
         const val TAG = "PhoneAutoFragment"
 
         // ISO 3166-1 two letters country code
-        const val COUNTRY_CODE = "KR"  // 국가별 string value로 처리할 것.
+        const val COUNTRY_CODE = "KR"  // 국가별 string value로 처리할 것. locale get default 확인해볼것.
 
         var isSmsReceiverRegistered = false
     }

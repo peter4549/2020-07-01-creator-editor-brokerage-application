@@ -11,6 +11,7 @@ const val COLLECTION_CHAT_MESSAGES = "chat_messages"
 // Common
 const val KEY_PUSH_TOKEN = "pushToken"
 
+// must be moved...
 const val API_KEY =
     "key=AAAAi-iss7Q:APA91bEBStlhkp7asJn72PEZUtMvql_1oLb_LC5DfJ-RwpaRUQYrPJR1WEGAZXqCPQ5eqqBdQtdA5MM0J2oJQSSNi27BxiNCuIaaySVyXhYr1mMdIlJoCFtJboy2ydOjfLy59Fj_Khmu"
-const val PROJECT_ID = "creator-editor-brokerage-app"
+const val SENDER_ID = "600904086452"

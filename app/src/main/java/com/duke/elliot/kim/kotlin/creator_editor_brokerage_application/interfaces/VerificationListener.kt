@@ -12,8 +12,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class VerificationListener(private val context: Context): OnVerificationListener {
     private var count = 0
-    private var codeFromFragment = ""
-    private var codeFromReceiver = ""
+    private var codeFromFragment: String? = null
+    private var codeFromReceiver: String? = null
 
     override fun onSetCodeFromFragment(code: String) {
         codeFromFragment = code

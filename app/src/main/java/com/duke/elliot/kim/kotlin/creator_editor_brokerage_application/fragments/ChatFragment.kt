@@ -14,7 +14,6 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import com.google.gson.Gson
 import com.squareup.okhttp.*
@@ -28,7 +27,6 @@ import java.util.*
 class ChatFragment(private var chatRoom: ChatRoomModel? = null,
                    private val pr: PrModel? = null) : Fragment() {
 
-    private lateinit var chatMessageRecyclerViewAdapter: ChatMessageRecyclerViewAdapter
     private lateinit var collectionReference: CollectionReference
     private lateinit var currentUserId: String
     private lateinit var currentUserPublicName: String
@@ -54,7 +52,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
                 .collection(COLLECTION_CHAT).document(chatRoom!!.roomId)
                 .collection(COLLECTION_CHAT_MESSAGES)
 
-            setChatMessageListener()
+            initRecyclerView()
         } else {
             publisherId = pr!!.publisherId
             publisherName = pr.publisherName
@@ -79,41 +77,19 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
     }
 
     override fun onStop() {
-        removeChatMessageListener() // 잘되는지 아직 모름. 아마 시작부분에 리사이클러뷰 초기화띠 하면 되지않을까.
-        // 아니면 시작할 때, 채팅방 이름 비교해서 다르면 클리어.
+        removeChatMessageSnapshotListener()
         super.onStop()
     }
 
-    private fun setChatMessageListener() {
-        initRecyclerView()
-        listenerRegistration = collectionReference.addSnapshotListener { value, error ->
-            if (error != null)
-                println("$TAG: $error")
-            else {
-                for (change in value!!.documentChanges) {
-                    when (change.type) {
-                        DocumentChange.Type.ADDED ->
-                            chatMessageRecyclerViewAdapter.insert(ChatMessageModel(change.document.data))
-                        DocumentChange.Type.MODIFIED ->
-                            chatMessageRecyclerViewAdapter.update(ChatMessageModel(change.document.data))
-                        DocumentChange.Type.REMOVED ->
-                            chatMessageRecyclerViewAdapter.delete(ChatMessageModel(change.document.data))
-                        else -> {  }
-                    }
-                }
-            }
-        }
-    }
-
-    fun removeChatMessageListener() {
-        listenerRegistration.remove()
+    private fun removeChatMessageSnapshotListener() {
+        if (::listenerRegistration.isInitialized)
+            listenerRegistration.remove()
     }
 
     private fun initRecyclerView() {
-        chatMessageRecyclerViewAdapter = ChatMessageRecyclerViewAdapter(mutableListOf())
         recycler_view_chat_messages.apply {
             setHasFixedSize(true)
-            adapter = chatMessageRecyclerViewAdapter
+            adapter = ChatMessageRecyclerViewAdapter()
             layoutManager = LayoutManagerWrapper(context, 1)
         }
     }
@@ -132,13 +108,14 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
             .collection(COLLECTION_CHAT)
             .document(chatRoomId)
             .collection(COLLECTION_CHAT_MESSAGES)
-            .document("init").set(chatMessage)
+            .add(chatMessage)
             .addOnCompleteListener {  task ->
                 if (task.isSuccessful) {
                     chatRoom = ChatRoomModel()
                     chatRoom?.creationTime = creationTime
                     chatRoom?.publisherId = publisherId
                     chatRoom?.publisherName = publisherName
+                    chatRoom?.roomId = chatRoomId
                     chatRoom?.userIds = mutableListOf(currentUserId, publisherId)
                     chatRoom?.userPublicNames =
                         mutableListOf(currentUserPublicName, publisherName)
@@ -156,7 +133,8 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
                         .collection(COLLECTION_CHAT).document(chatRoomId)
                         .collection(COLLECTION_CHAT_MESSAGES)
 
-                    setChatMessageListener()
+                    // setChatMessageListener() // 리사이클러뷰만 달면됨.
+                    initRecyclerView()
                 } else {
                     showToast(requireContext(), "채팅방 생성에 실패했습니다.")
                     println("${PrFragment.TAG}: ${task.exception}")
@@ -164,26 +142,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
             }
     }
 
-    /*
-    private fun updateUserChatRooms(room: String) {
-        val map = mutableMapOf<String, Any>()
-
-        MainActivity.currentUserModel?.myChatRooms?.add(room)
-        map[KEY_USER_CHAT_ROOMS] = MainActivity.currentUserModel!!.myChatRooms
-        FirebaseFirestore.getInstance().collection(COLLECTION_USERS)
-            .document(MainActivity.currentUser!!.uid).update(map).addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    println("$TAG: Chat rooms updated")
-                } else {
-                    showToast(requireContext(), "채팅방 정보 업데이트에 실패했습니다.")
-                    println("$TAG: ${task.exception}")
-                }
-            }
-    }
-
-     */
-
-    private fun sendMessage(message: String) {
+    private fun sendMessage(message: String) { // 채팅메시지 쏘는 부분.
         val chatMessage = ChatMessageModel()
 
         chatMessage.senderName = currentUserPublicName
@@ -200,6 +159,56 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
         }
     }
 
+    private fun getGroupNotificationKey() {
+        val creationTime = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+        val url = "https://fcm.googleapis.com/fcm/notification"
+        val notificationModel = NotificationModel()
+
+        notificationModel.operation = "create"
+        if (chatRoom == null)
+            notificationModel.notification_key_name =
+                hashString(listOf(currentUserId, publisherId).joinToString() + creationTime).chunked(16)[0]
+        else
+            notificationModel.notification_key_name =
+                hashString(chatRoom!!.userIds.joinToString() + creationTime).chunked(16)[0]
+
+
+        println("HOXY?HOX" + notificationModel.notification_key_name)
+        //notificationModel.registration_ids = chatRoom?.userIds?.toList()
+        notificationModel.registration_ids =
+            arrayOf("cqTS8NH-RPKRsasE1W2lEe:APA91bE2ozNJaJra6jykYV8pMrGE6kbKgZ1eu7M-O7NUcMAVILfd3pMov_wWYZRcMskaxEreQv0fMv1fX418FUXqyQ4pV2CUNlmrefj1UIHhDYeLKMOrTQaIZ3VfetHuv5Q3EOctwQoM")
+
+        val requestBody =
+            RequestBody.create(MediaType.parse("application/json; charset=utf8"),
+                Gson().toJson(notificationModel))
+
+        println("DRACULAA: " + Gson().toJson(notificationModel).toString())
+
+        val request = Request.Builder().header("Content-Type", "application/json")
+            .addHeader("Authorization", API_KEY)
+            .addHeader("project_id", SENDER_ID)  // MainActivity.currentUser?.pushToken)
+            .url(url)
+            .post(requestBody)
+            .build()
+
+        println("$TAG : THISFORRESP" + notificationModel.registration_ids.toString())
+
+        val okHttpClient = OkHttpClient()
+        okHttpClient.newCall(request).enqueue(object: Callback {
+            override fun onFailure(request: Request?, e: IOException?) {
+                //showToast(requireContext(), "notifycation key")
+                println("$TAG ${e?.message}")
+            }
+
+            override fun onResponse(response: Response?) {
+                //showToast(requireContext(), "notifycation key. getodaze!" + response.toString())
+                println("$TAG::thisisforresultgetTok ${response?.body()?.string()}") // 뭐날라오는지 확인. 이걸로 완료.
+                println("HOWABOUThis111 " + response?.message())
+                println("HOWABOUThis222 " + response!!)
+            }
+        })
+    }
+
     private fun sendCloudMessage(chatRoom: ChatRoomModel) {
         // 그룹인지 아닌지 판단해서 보낼 것.
         FirebaseFirestore.getInstance()
@@ -211,55 +220,17 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
                     if (map != null) {
                         val pushToken = map[KEY_PUSH_TOKEN] as String // 상대방한테갈 푸시토큰. 상대방의 푸시 토큰.
                         sendPushMessage(pushToken, chatRoom.roomId)
-                        println("${PrFragment.TAG}: Publisher ID found")
+                        println("$TAG: Publisher ID found")
                     } else
                         showToast(requireContext(), "퍼블리셔를 찾을 수 없습니다.")
                 } else {
                     showToast(requireContext(), "퍼블리셔를 찾을 수 없습니다.")
-                    println("${PrFragment.TAG}: ${task.exception}")
+                    println("$TAG: ${task.exception}")
                 }
             }
     }
 
-    private fun getGroupNotificationKey() {
-        val url = "https://fcm.googleapis.com/fcm/notification"
-        val notificationModel = NotificationModel()
-
-        notificationModel.operation = "create"
-        if (chatRoom == null)
-            notificationModel.notification_key_name =
-                hashString(listOf(currentUserId, publisherId).joinToString().chunked(16)[0])
-        else
-            notificationModel.notification_key_name =
-                hashString(chatRoom!!.userIds.joinToString().chunked(16)[0])
-        notificationModel.registration_ids = chatRoom?.userIds?.toList()
-
-        val requestBody =
-            RequestBody.create(MediaType.parse("application/json; charset=utf8"),
-                Gson().toJson(notificationModel))
-        val request = Request.Builder().header("Content-Type", "application/json")
-            .addHeader("Authorization", API_KEY)
-            .addHeader("project_id", PROJECT_ID)
-            .url(url)
-            .post(requestBody)
-            .build()
-
-        val okHttpClient = OkHttpClient()
-        okHttpClient.newCall(request).enqueue(object: Callback {
-            override fun onFailure(request: Request?, e: IOException?) {
-                showToast(requireContext(), "notifycation key")
-                println("${PrFragment.TAG}: ${e?.message}")
-            }
-
-            override fun onResponse(response: Response?) {
-                showToast(requireContext(), "notifycation key. getodaze!" + response.toString())
-                println("${PrFragment.TAG}: $response") // 뭐날라오는지 확인.
-            }
-        })
-    }
-
-    private fun sendPushMessage(pushToken: String, roomId: String) {
-        val gson = Gson()
+    private fun sendPushMessage(pushToken: String, roomId: String) { // 이 함수, 통일할 것.
         val url = "https://fcm.googleapis.com/fcm/send"
         val text = "${currentUserPublicName}님께서 대화를 요청하셨습니다."
         val cloudMessage = CloudMessageModel()
@@ -272,7 +243,9 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
         cloudMessage.data.roomId = roomId
         cloudMessage.data.senderPublicName = currentUserPublicName
 
-        val requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf8"), gson.toJson(cloudMessage))
+        val requestBody =
+            RequestBody.create(MediaType.parse("application/json; charset=utf8"),
+            Gson().toJson(cloudMessage))
         val request = Request.Builder().header("Content-Type", "application/json")
             .addHeader("Authorization", API_KEY)
             .url(url)
@@ -288,15 +261,21 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
 
             override fun onResponse(response: Response?) {
                 showToast(requireContext(), "채팅을 요청했습니다.")
-                println("${PrFragment.TAG}: $response") // 뭐날라오는지 확인.
+                println("$TAG: ${response?.body()?.string()}") // 뭐날라오는지 확인.
             }
         })
     }
 
-    class ChatMessageRecyclerViewAdapter(private val chatMessages: MutableList<ChatMessageModel>) :
+    inner class ChatMessageRecyclerViewAdapter :
         RecyclerView.Adapter<ChatMessageRecyclerViewAdapter.ViewHolder>() {
 
+        private val chatMessages = mutableListOf<ChatMessageModel>()
+
         inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
+
+        init {
+            setChatMessageSnapshotListener(this)
+        }
 
         override fun onCreateViewHolder(
             parent: ViewGroup,
@@ -330,6 +309,26 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
         fun delete(chatMessage: ChatMessageModel) {
             chatMessages.remove(chatMessage)
             notifyItemRemoved(getPosition(chatMessage))
+        }
+    }
+
+    private fun setChatMessageSnapshotListener(chatMessageRecyclerViewAdapter: ChatMessageRecyclerViewAdapter) {
+        listenerRegistration = collectionReference.addSnapshotListener { value, error ->
+            if (error != null)
+                println("$TAG: $error")
+            else {
+                for (change in value!!.documentChanges) {
+                    when (change.type) {
+                        DocumentChange.Type.ADDED ->
+                            chatMessageRecyclerViewAdapter.insert(ChatMessageModel(change.document.data))
+                        DocumentChange.Type.MODIFIED ->
+                            chatMessageRecyclerViewAdapter.update(ChatMessageModel(change.document.data))
+                        DocumentChange.Type.REMOVED ->
+                            chatMessageRecyclerViewAdapter.delete(ChatMessageModel(change.document.data))
+                        else -> {  }
+                    }
+                }
+            }
         }
     }
 
