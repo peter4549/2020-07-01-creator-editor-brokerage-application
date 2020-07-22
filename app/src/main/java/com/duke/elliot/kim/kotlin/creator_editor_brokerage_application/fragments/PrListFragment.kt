@@ -149,7 +149,7 @@ class PrListFragment : Fragment() {
                         DocumentChange.Type.ADDED -> prListRecyclerViewAdapter.insert(PrModel(change.document.data))
                         DocumentChange.Type.MODIFIED -> prListRecyclerViewAdapter.update(PrModel(change.document.data))
                         DocumentChange.Type.REMOVED -> prListRecyclerViewAdapter.delete(PrModel(change.document.data))
-                        else -> { println("$TAG: Unexpected DocumentChange Type") }
+                        else -> { println("$TAG: unexpected DocumentChange Type") }
                     }
                 }
             }
@@ -162,7 +162,7 @@ class PrListFragment : Fragment() {
     }
 
     companion object {
-        const val TAG = "PRListFragment"
+        const val TAG = "PrListFragment"
     }
 
 }

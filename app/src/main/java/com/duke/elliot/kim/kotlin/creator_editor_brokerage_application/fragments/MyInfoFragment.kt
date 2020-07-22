@@ -31,13 +31,11 @@ import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 class MyInfoFragment : Fragment() {
 
     private val firebaseAuth = FirebaseAuth.getInstance()
     private var googleSignInClient: GoogleSignInClient? = null
     private var profileImageFileDownloadUri: Uri? = null
-    private var profileImageFileName: String? = null
     private var profileImageFileUri: Uri? = null
 
     override fun onCreateView(
@@ -91,9 +89,9 @@ class MyInfoFragment : Fragment() {
                     )
             } else {
                 if (edit_text_phone_number.text.isBlank())
-                    showToast(requireContext(), "전화번호를 입력해주세요.")
+                    showToast(requireContext(), getString(R.string.request_phone_number))
                 else if (verified)
-                    showToast(requireContext(), "이미 인증하셨습니다.")
+                    showToast(requireContext(), getString(R.string.already_verified))
             }
         }
 
@@ -101,7 +99,7 @@ class MyInfoFragment : Fragment() {
             if (verified)
                 uploadData()
             else
-                showToast(requireContext(), "본인인증을 진행해주세요.")
+                showToast(requireContext(), getString(R.string.request_verification))
         }
 
         button_logout.setOnClickListener {
@@ -126,7 +124,6 @@ class MyInfoFragment : Fragment() {
     }
 
     private fun clearUI() {
-        profileImageFileName = null
         profileImageFileUri = null
 
         Glide.with(image_view_profile.context)
@@ -157,7 +154,6 @@ class MyInfoFragment : Fragment() {
     }
 
     private fun setProfileImage(uri: Uri) {
-        Glide.with(image_view_profile.context).clear(image_view_profile)
         Glide.with(image_view_profile.context)
             .load(uri)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
@@ -171,36 +167,37 @@ class MyInfoFragment : Fragment() {
 
     private fun uploadData() = runBlocking {
         if (edit_text_name.text.isBlank()) {
-            showToast(requireContext(), "이름을 입력해주세요.")
+            showToast(requireContext(), getString(R.string.request_name))
             return@runBlocking
         }
 
         if (edit_text_public_name.text.isBlank()) {
-            showToast(requireContext(), "공개용 이름을 입력해주세요.")
+            showToast(requireContext(), getString(R.string.request_public_name))
             return@runBlocking
         }
 
         if (edit_text_phone_number.text.isBlank()) {
-            showToast(requireContext(), "전화번호를 입력해주세요.")
+            showToast(requireContext(), getString(R.string.request_phone_number))
             return@runBlocking
         }
 
         if (profileImageFileUri != null) {
-            val timestamp =
-                SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
-            profileImageFileName = "$timestamp.png"
 
-            uploadDataWithProfileImage(profileImageFileUri!!, profileImageFileName!!)
+
+            uploadDataWithProfileImage(profileImageFileUri!!)
         } else
             uploadDataWithoutProfileImage()
     }
 
-    private fun uploadDataWithProfileImage(uri: Uri, fileName: String) {
+    private fun uploadDataWithProfileImage(uri: Uri) {
+        val timestamp =
+            SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+        val profileImageFileName = "$timestamp.png"
         val storageReference =
             FirebaseStorage.getInstance().reference
                 .child(COLLECTION_PROFILE_IMAGES)
                 .child(firebaseAuth.currentUser!!.uid)
-                .child(fileName)
+                .child(profileImageFileName)
 
         storageReference.putFile(uri).continueWithTask {
             return@continueWithTask storageReference.downloadUrl
@@ -209,7 +206,7 @@ class MyInfoFragment : Fragment() {
                 profileImageFileDownloadUri = it.result
                 println("$TAG: Image uploaded")
             } else {
-                showToast(requireContext(), "이미지 업로드에 실패했습니다.")
+                showToast(requireContext(), getString(R.string.image_upload_failed))
                 println("$TAG: ${it.exception}")
             }
 
@@ -233,7 +230,7 @@ class MyInfoFragment : Fragment() {
             FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     user.pushToken = task.result?.token  // Set pushToken
-                    println("$TAG: Token generated")
+                    println("$TAG: token generated")
 
                     FirebaseFirestore.getInstance()
                         .collection(COLLECTION_USERS)
@@ -241,16 +238,16 @@ class MyInfoFragment : Fragment() {
                         .set(user)
                         .addOnCompleteListener { setTask ->
                             if (setTask.isSuccessful) {
-                                showToast(requireContext(), "프로필을 등록했습니다.")
+                                showToast(requireContext(), getString(R.string.profile_uploaded))
                                 MainActivity.currentUser = user
                             } else {
-                                showToast(requireContext(), "데이터 저장에 실패했습니다.")
+                                showToast(requireContext(), getString(R.string.profile_upload_failed))
                                 println("$TAG: ${setTask.exception}")
                             }
                         }
                 } else {
-                    showToast(requireContext(), "토큰 생성에 실패했습니다.")
-                    println("$TAG: Token generation failed")
+                    showToast(requireContext(), getString(R.string.token_generation_failure_message))
+                    println("$TAG: token generation failed")
                 }
             }
         }

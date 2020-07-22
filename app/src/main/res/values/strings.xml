@@ -3,16 +3,43 @@
     <string name="facebook_app_id">871598669995139</string>
     <string name="fb_login_protocol_scheme">fb871598669995139</string>
 
-    <string name="start_with_google">구글로 시작하기</string>
-    <string name="start_with_facebook">페이스북으로 시작하기</string>
-    <string name="sign_up_with_email">이메일로 가입하기</string>
-    <string name="id">아이디</string>
-    <string name="password">비밀번호</string>
-    <string name="sign_in">가입하기</string>
-    <string name="login">로그인</string>
-    <string name="profile_picture">Profile picture</string>
+    <!-- verification -->
+    <string name="code_lost">인증번호가 손실되었습니다.</string>
+    <string name="code_sent">인증번호가 발송되었습니다.</string>
+    <string name="invalid_request">유효하지 않은 요청입니다. 전화번호를 확인해주세요.</string>
+    <string name="too_many_requests">너무 많은 요청으로 인증요청이 차단되었습니다.\n잠시 후 다시 시도해주십시오.</string>
+    <string name="verification_failed">인증에 실패했습니다.</string>
 
-    <!-- Content categories -->
+    <!-- chat -->
+    <string name="chat_message_sending_failure_message">메시지 전송에 실패했습니다.</string>
+    <string name="chat_room_creation_failure_message">채팅방 생성에 실패했습니다.</string>
+    <string name="chat_room_creation_success_message">채팅방이 생성되었습니다.</string>
+    <string name="failed_to_find_chat_room_message">채팅방을 찾지 못했습니다.</string>
+    <string name="failed_to_find_publisher">퍼블리셔를 찾을 수 없습니다.</string>
+
+    <!-- sign in and sign up -->
+    <string name="authentication_failure_message">인증에 실패했습니다.</string>
+    <string name="cancel">취소</string>
+    <string name="id">아이디</string>
+    <string name="login">로그인</string>
+    <string name="password">비밀번호</string>
+    <string name="profile_image">Profile image</string>
+    <string name="request_id_message">아이디를 입력해주세요.</string>
+    <string name="request_password_message">비밀번호를 입력해주세요.</string>
+    <string name="sign_in">가입하기</string>
+    <string name="sign_in_failure_message">로그인에 실패했습니다.</string>
+    <string name="sign_in_and_profile_creation_request_message">로그인 및 프로필 작성 후에 서비스를 이용하실 수 있습니다.</string>
+    <string name="sign_in_message">로그인 되었습니다.</string>
+    <string name="sign_out_message">로그아웃 되었습니다.</string>
+    <string name="sign_up_message">회원가입이 완료되었습니다.</string>
+    <string name="sign_up_with_email">이메일로 가입하기</string>
+    <string name="start_with_facebook">페이스북으로 시작하기</string>
+    <string name="start_with_google">구글로 시작하기</string>
+
+    <!-- permission -->
+    <string name="sms_receive_permission_request_message">SMS 수신권한을 승인하셔야 본인인증을 진행하실 수 있습니다.</string>
+
+    <!-- content categories -->
     <string name="category_car">자동차</string>
     <string name="category_beauty_fashion">뷰티/패션</string>
     <string name="category_comedy">코미디</string>
@@ -32,9 +59,25 @@
     <string name="category_sports">스포츠</string>
     <string name="category_travel_event">여행/이벤트</string>
 
-    <string name="default_notification_channel_id">default_notification_channel_id</string>
+    <!-- profile -->
+    <string name="already_verified">이미 인증하셨습니다.</string>
+    <string name="image_upload_failed">이미지 업로드에 실패했습니다.</string>
+    <string name="profile_creation">프로필 작성</string>
+    <string name="profile_creation_request_message">프로필 작성 후에 서비스를 이용하실 수 있습니다.</string>
+    <string name="profile_uploaded">프로필을 등록했습니다.</string>
+    <string name="profile_upload_failed">프로필 등록에 실패했습니다.</string>
+    <string name="request_name">이름을 입력해주세요.</string>
+    <string name="request_phone_number">전화번호를 입력해주세요.</string>
+    <string name="request_public_name">공개 이름을 입력해주세요.</string>
+    <string name="request_verification">본인인증을 진행해주세요.</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- token -->
+    <string name="token_generation_failure_message">토큰 생성에 실패했습니다.</string>
+    <string name="token_storage_failure_message">토큰 저장에 실패했습니다.</string>
+
+    <!-- data -->
+    <string name="data_read_failed_message">데이터를 읽어올 수 없습니다.</string>
+
+    <string name="default_notification_channel_id">default_notification_channel_id</string>
 
 </resources>

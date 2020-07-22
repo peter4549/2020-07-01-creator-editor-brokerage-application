@@ -58,8 +58,6 @@ class PrFragment : Fragment() {
             fab_unfold.setOnClickListener {
                 if (MainActivity.currentUser == null)
                     (activity as MainActivity).requestProfileCreation()
-                else if (!MainActivity.currentUser!!.verified)
-                    (activity as MainActivity).requestAuthentication()
                 else
                     animateFab()
             }

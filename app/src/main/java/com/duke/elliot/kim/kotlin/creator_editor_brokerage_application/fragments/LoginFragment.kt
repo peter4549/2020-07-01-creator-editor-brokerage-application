@@ -72,12 +72,12 @@ class LoginFragment : Fragment() {
 
     private fun loginWithEmail() {
         if (edit_text_id.text.isBlank()) {
-            showToast(requireContext(), "아이디를 입력해주세요.")
+            showToast(requireContext(), getString(R.string.request_id_message))
             return
         }
 
         if (edit_text_password.text.isBlank()) {
-            showToast(requireContext(), "비밀번호를 입력해주세요.")
+            showToast(requireContext(), getString(R.string.request_password_message))
             return
         }
 
@@ -87,9 +87,9 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
-                    println("$TAG: Login with email")
+                    println("$TAG: login with email")
                 else
-                    showToast(requireContext(), "이메일 로그인에 실패했습니다.")
+                    showToast(requireContext(), getString(R.string.sign_in_failure_message))
             }
     }
 
@@ -110,9 +110,9 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
-                println("$TAG: Login with Google")
+                println("$TAG: login with Google")
             else
-                showToast(requireContext(), "구글 인증에 실패했습니다.")
+                showToast(requireContext(), getString(R.string.authentication_failure_message))
         }
     }
 
@@ -130,7 +130,7 @@ class LoginFragment : Fragment() {
             }
 
             override fun onError(error: FacebookException?) {
-                showToast(requireContext(), "페이스북 로그인에 실패했습니다.")
+                showToast(requireContext(), getString(R.string.sign_in_failure_message))
             }
         })
     }
@@ -140,9 +140,9 @@ class LoginFragment : Fragment() {
         FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener {
                 task ->
             if (task.isSuccessful)
-                println("$TAG: Login with Facebook")
+                println("$TAG: login with Facebook")
             else
-                showToast(requireContext(), "페이스북 인증에 실패했습니다.")
+                showToast(requireContext(), getString(R.string.authentication_failure_message))
         }
     }
 

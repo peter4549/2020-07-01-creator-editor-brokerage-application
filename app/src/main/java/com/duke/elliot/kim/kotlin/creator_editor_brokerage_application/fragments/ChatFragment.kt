@@ -31,6 +31,8 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
     private lateinit var currentUserId: String
     private lateinit var currentUserPublicName: String
     private lateinit var listenerRegistration: ListenerRegistration
+    private val otherUserTokens = mutableListOf<String>()
+    private var firstMessage = true
     private var publisherId = ""
     private var publisherName = ""
 
@@ -46,6 +48,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
 
         if (chatRoom != null) {
             button_input.isEnabled = true
+            MainActivity.currentChatRoomId = chatRoom!!.roomId
             publisherId = chatRoom!!.publisherId
             publisherName = chatRoom!!.publisherName
             collectionReference = FirebaseFirestore.getInstance()
@@ -59,7 +62,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
         }
 
         button_input.setOnClickListener {
-            getGroupNotificationKey() // test!
+            // getGroupNotificationKey() // test!
             if (edit_text_message.text.isNotBlank()) {
                 val message = edit_text_message.text.toString()
                 if (chatRoom == null)
@@ -78,6 +81,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
 
     override fun onStop() {
         removeChatMessageSnapshotListener()
+        MainActivity.currentChatRoomId = null
         super.onStop()
     }
 
@@ -103,6 +107,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
         chatMessage.senderName = MainActivity.currentUser!!.publicName
         chatMessage.message = initMessage
         chatMessage.time = creationTime
+        MainActivity.currentChatRoomId = chatRoomId
 
         FirebaseFirestore.getInstance()
             .collection(COLLECTION_CHAT)
@@ -113,6 +118,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
                 if (task.isSuccessful) {
                     chatRoom = ChatRoomModel()
                     chatRoom?.creationTime = creationTime
+                    chatRoom?.groupNotificationKey = ""
                     chatRoom?.publisherId = publisherId
                     chatRoom?.publisherName = publisherName
                     chatRoom?.roomId = chatRoomId
@@ -124,8 +130,8 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
                         .collection(COLLECTION_CHAT)
                         .document(chatRoomId).set(chatRoom!!).addOnCompleteListener { setChatRoomTask ->
                             if (setChatRoomTask.isSuccessful) {
-                                showToast(requireContext(), "채팅방이 생성되었습니다.")
-                                sendCloudMessage(chatRoom!!)
+                                showToast(requireContext(), getString(R.string.chat_room_creation_success_message))
+                                sendCloudMessageAfterGetTokens()
                             }
                         }
 
@@ -133,16 +139,15 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
                         .collection(COLLECTION_CHAT).document(chatRoomId)
                         .collection(COLLECTION_CHAT_MESSAGES)
 
-                    // setChatMessageListener() // 리사이클러뷰만 달면됨.
                     initRecyclerView()
                 } else {
-                    showToast(requireContext(), "채팅방 생성에 실패했습니다.")
+                    showToast(requireContext(), getString(R.string.chat_room_creation_failure_message))
                     println("${PrFragment.TAG}: ${task.exception}")
                 }
             }
     }
 
-    private fun sendMessage(message: String) { // 채팅메시지 쏘는 부분.
+    private fun sendMessage(message: String) { // 채팅메시지 쏘는 부분. 푸시 메시지도 보내야함.
         val chatMessage = ChatMessageModel()
 
         chatMessage.senderName = currentUserPublicName
@@ -150,97 +155,123 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
         chatMessage.time = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
 
         collectionReference.add(chatMessage).addOnCompleteListener {  task ->
-            if (task.isSuccessful)
-                println("$TAG: Message sent")
+            if (task.isSuccessful) {
+                if (firstMessage)
+                    sendCloudMessageAfterGetTokens()
+                else
+                    sendCloudMessage()
+                println("$TAG: message sent")
+            }
             else {
-                showToast(requireContext(), "메시지 전송에 실패했습니다.")
+                showToast(requireContext(), getString(R.string.chat_message_sending_failure_message))
                 println("$TAG: ${task.exception}")
             }
         }
     }
 
-    private fun getGroupNotificationKey() {
+    // 세 명 이상으로 채팅방이 생성될 때, 또는 멤버 초대시 수행되어야 함.
+    private fun getGroupNotificationKey() { // 시발 딱히 필요없어보임;;
         val creationTime = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
         val url = "https://fcm.googleapis.com/fcm/notification"
-        val notificationModel = NotificationModel()
+        val groupNotification = GroupNotificationModel()
 
-        notificationModel.operation = "create"
+        groupNotification.operation = "create"
         if (chatRoom == null)
-            notificationModel.notification_key_name =
+            groupNotification.notification_key_name =
                 hashString(listOf(currentUserId, publisherId).joinToString() + creationTime).chunked(16)[0]
-        else
-            notificationModel.notification_key_name =
+        else {
+            groupNotification.notification_key_name =
                 hashString(chatRoom!!.userIds.joinToString() + creationTime).chunked(16)[0]
-
-
-        println("HOXY?HOX" + notificationModel.notification_key_name)
-        //notificationModel.registration_ids = chatRoom?.userIds?.toList()
-        notificationModel.registration_ids =
-            arrayOf("cqTS8NH-RPKRsasE1W2lEe:APA91bE2ozNJaJra6jykYV8pMrGE6kbKgZ1eu7M-O7NUcMAVILfd3pMov_wWYZRcMskaxEreQv0fMv1fX418FUXqyQ4pV2CUNlmrefj1UIHhDYeLKMOrTQaIZ3VfetHuv5Q3EOctwQoM")
+            groupNotification.registration_ids = chatRoom!!.userPushTokens // 여기에 다이렉트로 메시지 꼽으면 끝나는거같은데 시바ㅏㄹ''
+        }
 
         val requestBody =
             RequestBody.create(MediaType.parse("application/json; charset=utf8"),
-                Gson().toJson(notificationModel))
-
-        println("DRACULAA: " + Gson().toJson(notificationModel).toString())
+                Gson().toJson(groupNotification))
 
         val request = Request.Builder().header("Content-Type", "application/json")
             .addHeader("Authorization", API_KEY)
-            .addHeader("project_id", SENDER_ID)  // MainActivity.currentUser?.pushToken)
+            .addHeader("project_id", SENDER_ID)
             .url(url)
             .post(requestBody)
             .build()
 
-        println("$TAG : THISFORRESP" + notificationModel.registration_ids.toString())
-
         val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object: Callback {
             override fun onFailure(request: Request?, e: IOException?) {
-                //showToast(requireContext(), "notifycation key")
+                showToast(requireContext(), "그룹 메시징 키 생성에 실패했습니다.")
                 println("$TAG ${e?.message}")
             }
 
             override fun onResponse(response: Response?) {
-                //showToast(requireContext(), "notifycation key. getodaze!" + response.toString())
-                println("$TAG::thisisforresultgetTok ${response?.body()?.string()}") // 뭐날라오는지 확인. 이걸로 완료.
-                println("HOWABOUThis111 " + response?.message())
-                println("HOWABOUThis222 " + response!!)
+                if (response?.isSuccessful == true)
+                    println("$TAG::thisisforresultgetTok ${response.body()?.string()}") // 뭐날라오는지 확인. 제이슨으로받을것.
+                // 여기서 받아 전역변수에 저장할 것.
+                // 순서.. 다수의 채팅방이 생성되는 경우는 없다. 초대되는 경우만 존재함 즉, 이거는 업데이트만이 수행될것.
+                else {
+                    showToast(requireContext(), "그룹 메시징 키 생성에 실패했습니다.")
+                    println("$TAG: Group messaging key generation failed")
+                }
             }
         })
     }
 
-    private fun sendCloudMessage(chatRoom: ChatRoomModel) {
+    private fun sendCloudMessageAfterGetTokens() {
         // 그룹인지 아닌지 판단해서 보낼 것.
+        // 여기서 분화할것. 만약 멤버가 2명 아래 로직.
+        // 다수의 유저를 불러올때 로직. .where("UserModel.KEY_ID", "in", ["id1", "id2"]) // 일단 이론임.
+
         FirebaseFirestore.getInstance()
-            .collection(COLLECTION_USERS).whereEqualTo(
-                UserModel.KEY_ID, publisherId)  // 멤버들한테 다 보내야함. 이부분은 단체 채팅부분에서 수정할것. 이게 아니라 챗 룸의 멤버아이디..로 서칭.
+            .collection(COLLECTION_USERS).whereIn(
+                UserModel.KEY_ID, chatRoom!!.userIds)  // 멤버들한테 다 보내야함. 이부분은 단체 채팅부분에서 수정할것. 이게 아니라 챗 룸의 멤버아이디..로 서칭. 여기서 단체로 서칭.
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val map = task.result?.documents?.get(0)?.data
-                    if (map != null) {
-                        val pushToken = map[KEY_PUSH_TOKEN] as String // 상대방한테갈 푸시토큰. 상대방의 푸시 토큰.
-                        sendPushMessage(pushToken, chatRoom.roomId)
-                        println("$TAG: Publisher ID found")
-                    } else
-                        showToast(requireContext(), "퍼블리셔를 찾을 수 없습니다.")
+                    task.result?.documents?.let { documentSnapshots ->
+                        for (documentSnapshot in
+                        documentSnapshots.filter { it[UserModel.KEY_ID] != currentUserId }) {
+                            otherUserTokens.add(documentSnapshot?.data?.get(KEY_PUSH_TOKEN) as String)
+                        }
+
+                        if (otherUserTokens.count() > 1) {
+                            // 다수의 유저 케이스.
+                            // 여기서 그토큰얻어오는 로직도 필요함.
+                        } else {
+                            sendSingleCloudMessage(otherUserTokens[0])
+                            println("$TAG: publisher id found")
+                        }
+
+                        firstMessage = false
+                    } ?: run {
+                        showToast(requireContext(), getString(R.string.failed_to_find_publisher))
+                        return@addOnCompleteListener
+                    }
                 } else {
-                    showToast(requireContext(), "퍼블리셔를 찾을 수 없습니다.")
+                    showToast(requireContext(), getString(R.string.failed_to_find_publisher))
                     println("$TAG: ${task.exception}")
                 }
             }
     }
 
-    private fun sendPushMessage(pushToken: String, roomId: String) { // 이 함수, 통일할 것.
+    private fun sendCloudMessage() {
+        if (otherUserTokens.count() > 1) {
+            // 그룹 메시지 토큰을 사용하여 보내기.
+        } else {
+            sendSingleCloudMessage(otherUserTokens[0])
+        }
+    }
+
+    private fun sendSingleCloudMessage(pushToken: String) { // 이 함수, 통일할 것.
         val url = "https://fcm.googleapis.com/fcm/send"
-        val text = "${currentUserPublicName}님께서 대화를 요청하셨습니다."
         val cloudMessage = CloudMessageModel()
 
         cloudMessage.to = pushToken
-        cloudMessage.notification.title = "대화 요청 알림"
-        cloudMessage.notification.text = text
 
-        cloudMessage.data.message = "최신메시지"
-        cloudMessage.data.roomId = roomId
+        // cloudMessage.notification.click_action = ACTION_MAIN
+        cloudMessage.notification.title = currentUserPublicName
+        cloudMessage.notification.text = edit_text_message.text.toString()
+
+        cloudMessage.data.message = edit_text_message.text.toString()
+        cloudMessage.data.roomId = chatRoom!!.roomId
         cloudMessage.data.senderPublicName = currentUserPublicName
 
         val requestBody =
@@ -255,13 +286,17 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
         val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object: Callback {
             override fun onFailure(request: Request?, e: IOException?) {
-                showToast(requireContext(), "채팅 요청에 실패했습니다.")
+                showToast(requireContext(), getString(R.string.chat_message_sending_failure_message))
                 println("${PrFragment.TAG}: ${e?.message}")
             }
 
             override fun onResponse(response: Response?) {
-                showToast(requireContext(), "채팅을 요청했습니다.")
-                println("$TAG: ${response?.body()?.string()}") // 뭐날라오는지 확인.
+                if (response?.isSuccessful == true)
+                    println("$TAG: ${response.body()?.string()}")
+                else {
+                    showToast(requireContext(), getString(R.string.chat_message_sending_failure_message))
+                    println("$TAG: message sending failed")
+                }
             }
         })
     }
@@ -334,5 +369,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
 
     companion object {
         const val TAG = "ChatFragment"
+
+        const val ACTION_MAIN = "android.intent.action.MAIN"
     }
 }

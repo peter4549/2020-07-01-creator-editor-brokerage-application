@@ -45,7 +45,7 @@ class ChatRoomsFragment : Fragment() {
         }
     }
 
-    private fun enterExistingChatRoom(chatRoom: ChatRoomModel) {
+    private fun enterChatRoom(chatRoom: ChatRoomModel) {
         (activity as MainActivity)
             .startFragment(ChatFragment(chatRoom), R.id.frame_layout_chat_rooms, CHAT_FRAGMENT_TAG)
     }
@@ -73,9 +73,9 @@ class ChatRoomsFragment : Fragment() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val chatRoom = chatRooms[position]
             holder.view.text_view_public_name.text = chatRoom.userPublicNames.joinToString()
-            holder.view.text_view_message.text = chatRoom.latestMessage
+            holder.view.text_view_message.text = chatRoom.lastMessage
             holder.view.setOnClickListener {
-                enterExistingChatRoom(chatRoom)
+                enterChatRoom(chatRoom)
             }
         }
 

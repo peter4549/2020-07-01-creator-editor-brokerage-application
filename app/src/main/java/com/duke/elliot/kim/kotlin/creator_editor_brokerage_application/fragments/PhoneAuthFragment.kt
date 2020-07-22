@@ -120,14 +120,14 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
                 if (phoneAuthCredential.smsCode != null)
                     verificationListener.onSetCodeFromFragment(phoneAuthCredential.smsCode!!)
                 else
-                    showToast(requireContext(), "인증번호가 손실되었습니다.")
+                    showToast(requireContext(), getString(R.string.code_lost))
             }
 
             override fun onVerificationFailed(e: FirebaseException) {
                 when(e) {
-                    is FirebaseAuthInvalidCredentialsException -> showToast(requireContext(), "유효하지 않은 요청입니다. 전화번호를 확인해주세요.")
-                    is FirebaseTooManyRequestsException -> showToast(requireContext(), "너무 많은 요청으로 인증요청이 차단되었습니다.\n잠시 후 다시 시도해주십시오.")
-                    else -> showToast(requireContext(), "인증에 실패했습니다.")
+                    is FirebaseAuthInvalidCredentialsException -> showToast(requireContext(), getString(R.string.invalid_request))
+                    is FirebaseTooManyRequestsException -> showToast(requireContext(), getString(R.string.too_many_requests))
+                    else -> showToast(requireContext(), getString(R.string.verification_failed))
                 }
 
                 println("$TAG: ${e.message}")
@@ -135,7 +135,7 @@ class PhoneAuthFragment : Fragment(), SmsReceiver.OnSetCodeListener {
 
             override fun onCodeSent(verificationId: String, forceResendingToken: PhoneAuthProvider.ForceResendingToken) {
                 super.onCodeSent(verificationId, forceResendingToken)
-                showToast(requireContext(), "인증번호가 발송되었습니다.")
+                showToast(requireContext(), getString(R.string.code_sent))
                 verificationListener = VerificationListener(requireContext())
                 resendingToken = forceResendingToken
                 resend = true

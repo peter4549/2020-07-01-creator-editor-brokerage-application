@@ -21,7 +21,7 @@ class PagerFragmentStateAdapter(private val fragmentActivity: FragmentActivity)
             1 -> WritingFragment()
             2 -> (fragmentActivity as MainActivity).chatRoomsFragment
             3 -> MyInfoFragment()
-            else -> throw Exception("Invalid fragment")
+            else -> throw Exception("invalid fragment")
         }
     }
 

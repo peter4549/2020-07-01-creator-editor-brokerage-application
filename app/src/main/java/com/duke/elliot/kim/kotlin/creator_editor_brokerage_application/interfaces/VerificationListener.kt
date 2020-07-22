@@ -38,7 +38,7 @@ class VerificationListener(private val context: Context): OnVerificationListener
     private fun onVerifyCode() {
         if (codeFromFragment == codeFromReceiver) {
             showToast(context, "인증되었습니다.")
-            println("$TAG: Verification code matches")
+            println("$TAG: verification code matches")
             MyInfoFragment.verified = true
         } else {
             showToast(context, "코드가 일치하지 않습니다.")

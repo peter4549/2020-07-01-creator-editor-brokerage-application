@@ -7,12 +7,13 @@ class CloudMessageModel {
     var data: Data = Data()
 
     class Data {
+        var message: String = ""
         var roomId: String = ""
         var senderPublicName: String = ""
-        var message: String = ""
     }
 
     class Notification {
+        var click_action: String = "action_test"
         var title: String = ""
         var text: String = ""
     }

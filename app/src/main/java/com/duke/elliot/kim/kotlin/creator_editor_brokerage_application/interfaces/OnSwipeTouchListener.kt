@@ -70,7 +70,7 @@ class OnSwipeTouchListener(private val context: Context): View.OnTouchListener {
     fun onSwipeRight() {  }
 
     fun onSwipeLeft() {
-        (context as MainActivity).requestLogin()
+        (context as MainActivity).requestSignIn()
     }
 
     fun onSwipeTop() {  }

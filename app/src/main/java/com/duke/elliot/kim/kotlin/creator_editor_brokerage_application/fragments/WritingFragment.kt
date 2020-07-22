@@ -9,6 +9,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.REQUEST_CODE_GALLERY
@@ -17,6 +21,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PR_LIST
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PrModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -31,7 +36,9 @@ class WritingFragment : Fragment() {
     private lateinit var contentCategories: ArrayList<String>
     private lateinit var selectedCategory: String
     private lateinit var selectedImageView: ImageView
-    private val imageNames = mutableListOf<String?>(null, null, null)
+    private lateinit var user: UserModel
+    private val imageFileNames = mutableListOf<String?>(null, null, null)
+    private val imageFileUris = mutableListOf<Uri?>(null, null, null)
 
     private val onImageViewClickListener = View.OnClickListener { view ->
         selectedImageView = view as ImageView
@@ -105,9 +112,9 @@ class WritingFragment : Fragment() {
             }
         }
 
-        image_view_add_1.setImageURI(null)
-        image_view_add_2.setImageURI(null)
-        image_view_add_3.setImageURI(null)
+        Glide.with(image_view_add_1.context).clear(image_view_add_1)
+        Glide.with(image_view_add_2.context).clear(image_view_add_2)
+        Glide.with(image_view_add_3.context).clear(image_view_add_3)
 
         image_view_add_1.setOnClickListener(onImageViewClickListener)
         image_view_add_2.setOnClickListener(onImageViewClickListener)
@@ -116,6 +123,22 @@ class WritingFragment : Fragment() {
         button_upload.setOnClickListener {
             saveData()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        user = MainActivity.currentUser!!
+    }
+
+    private fun setImageWithGlide(imageView: ImageView, uri: Uri?) {
+        Glide.with(imageView.context)
+            .load(uri)
+            .error(R.drawable.ic_chat_64dp)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .transform(CircleCrop())
+            .into(imageView)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -138,17 +161,25 @@ class WritingFragment : Fragment() {
     }
 
     private fun setImage(uri: Uri) {
-        selectedImageView.setImageURI(null)
-        selectedImageView.setImageURI(uri)
-        selectedImageView.tag = uri
+
+        setImageWithGlide(selectedImageView, uri)
 
         val timestamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
         val fileName = "$timestamp.png"
 
         when (selectedImageView) {
-            image_view_add_1 -> imageNames[0] = fileName
-            image_view_add_2 -> imageNames[1] = fileName
-            image_view_add_3 -> imageNames[2] = fileName
+            image_view_add_1 -> {
+                imageFileNames[0] = fileName
+                imageFileUris[0] = uri
+            }
+            image_view_add_2 -> {
+                imageFileNames[1] = fileName
+                imageFileUris[1] = uri
+            }
+            image_view_add_3 -> {
+                imageFileNames[2] = fileName
+                imageFileUris[2] = uri
+            }
         }
     }
 
@@ -163,54 +194,47 @@ class WritingFragment : Fragment() {
             return
         }
 
-        var job = Job() as Job
+        val job = Job() as Job
 
-        CoroutineScope(Dispatchers.IO).launch {
-            job = launch(Dispatchers.IO + job) {
-                if (image_view_add_1.drawable != null && imageNames[0] != null)
-                    uploadImage(image_view_add_1.tag as Uri, imageNames[0]!!)
+        CoroutineScope(Dispatchers.IO + job).launch {
+            launch(Dispatchers.IO + job) {
+                if (imageFileNames[0] != null && imageFileUris[0] != null)
+                    uploadImage(imageFileUris[0]!!, imageFileNames[0]!!)
 
-                if (image_view_add_2.drawable != null && imageNames[1] != null)
-                    uploadImage(image_view_add_2.tag as Uri, imageNames[1]!!)
+                if (imageFileNames[1] != null && imageFileUris[1] != null)
+                    uploadImage(imageFileUris[1]!!, imageFileNames[1]!!)
 
-                if (image_view_add_3.drawable != null && imageNames[2] != null)
-                    uploadImage(image_view_add_3.tag as Uri, imageNames[2]!!)
+                if (imageFileNames[2] != null && imageFileUris[2] != null)
+                    uploadImage(imageFileUris[2]!!, imageFileNames[2]!!)
             }
 
-            job.join()
+            launch {
+                val pr = PrModel()
 
-            val prModel = PrModel()
-            val userId = MainActivity.currentUser!!.id
-            val occupation = ""
-            val publisherName = MainActivity.currentUser!!.publicName
-            val categoryDocumentName = categoryDocumentNames.getValue(selectedCategory)
-            val title = edit_text_title.text.toString()
-            val content = (edit_text_content.text ?: "").toString()
-            val registrationTime =
-                SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+                pr.publisherId = user.id
+                pr.publisherName = user.publicName
+                pr.occupation = ""
+                pr.category = categoryDocumentNames.getValue(selectedCategory)
+                pr.title = edit_text_title.text.toString()
+                pr.content = (edit_text_content.text ?: "").toString()
+                pr.registrationTime =
+                    SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+                pr.imageNames = imageFileNames
 
-            prModel.publisherId = userId
-            prModel.publisherName = publisherName
-            prModel.occupation = occupation
-            prModel.category = categoryDocumentName
-            prModel.title = title
-            prModel.content = content
-            prModel.registrationTime = registrationTime
-            prModel.imageNames = imageNames
-
-            val hashCode = hashString(userId + registrationTime).chunked(16)[0]
-            FirebaseFirestore.getInstance()
-                .collection(COLLECTION_PR_LIST)
-                .document(hashCode)
-                .set(prModel)
-                .addOnCompleteListener {  task ->
-                    if (task.isSuccessful)
-                        showToast(requireContext(), "PR이 등록되었습니다.")
-                    else {
-                        showToast(requireContext(), "등록에 실패했습니다.")
-                        println("$TAG: ${task.exception}")
+                val hashCode = hashString(user.id + pr.registrationTime).chunked(16)[0]
+                FirebaseFirestore.getInstance()
+                    .collection(COLLECTION_PR_LIST)
+                    .document(hashCode)
+                    .set(pr)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful)
+                            showToast(requireContext(), "PR이 등록되었습니다.")
+                        else {
+                            showToast(requireContext(), "등록에 실패했습니다.")
+                            println("$TAG: ${task.exception}")
+                        }
                     }
-                }
+            }
         }
     }
 
@@ -218,7 +242,7 @@ class WritingFragment : Fragment() {
         val storageReference =
             FirebaseStorage.getInstance().reference
                 .child(COLLECTION_IMAGES)
-                .child(MainActivity.currentUser!!.id)
+                .child(user.id)
                 .child(fileName)
 
         storageReference.putFile(uri).continueWithTask {
