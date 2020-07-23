@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.HomeFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.MyInfoFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.WritingFragment
 import java.lang.Exception
@@ -11,13 +12,11 @@ import java.lang.Exception
 class PagerFragmentStateAdapter(private val fragmentActivity: FragmentActivity)
     : FragmentStateAdapter(fragmentActivity) {
 
-    override fun getItemCount(): Int {
-        return PAGE_COUNT
-    }
+    override fun getItemCount(): Int = PAGE_COUNT
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> (fragmentActivity as MainActivity).prListFragment
+            0 -> (fragmentActivity as MainActivity).homeFragment
             1 -> WritingFragment()
             2 -> (fragmentActivity as MainActivity).chatRoomsFragment
             3 -> MyInfoFragment()

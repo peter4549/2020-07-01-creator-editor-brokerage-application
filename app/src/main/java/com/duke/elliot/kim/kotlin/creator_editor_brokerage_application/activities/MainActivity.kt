@@ -7,9 +7,10 @@ import android.os.Build
 import android.os.Bundle
 import android.view.MotionEvent
 import android.widget.LinearLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_CHAT
@@ -27,16 +28,19 @@ import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_my_info_navigation_drawer.*
 
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
 
     lateinit var chatRoomsFragment: ChatRoomsFragment
     private lateinit var authStateListener: AuthStateListener
     private lateinit var firebaseAuth: FirebaseAuth
     private val myInfoTabIndex = 3
-    private val prListTabIndex = 0
+    private val homeTabIndex = 0
     private var selectedTabIndex = 0
     val callbackManager: CallbackManager? = CallbackManager.Factory.create()
+    val homeFragment = HomeFragment()
+    val partnersFragment = PartnersFragment()
     val prListFragment = PrListFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,7 +103,6 @@ class MainActivity : FragmentActivity() {
                     println("$TAG: ${task.exception}")
                 }
             }
-
     }
 
     override fun onDestroy() {
@@ -134,14 +137,23 @@ class MainActivity : FragmentActivity() {
             supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(PHONE_AUTH_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(PR_FRAGMENT_TAG) != null -> super.onBackPressed()
-            view_pager.currentItem == prListTabIndex -> {
-                super.onBackPressed()
+            view_pager.currentItem == homeTabIndex -> {
+                if (homeFragment.tabLayout == null)
+                    super.onBackPressed()
+                else {
+                    if (homeFragment.selectedTabIndex == HomeFragment.PARTNERS_TAB_INDEX)
+                        homeFragment.tabLayout!!.getTabAt(HomeFragment.PR_LIST_TAB_INDEX)?.select()
+                    else
+                        super.onBackPressed()
+                }
             }
             view_pager.currentItem == myInfoTabIndex -> {
-                if (currentUser == null)
-                    requestProfileCreation()
-                else
-                    super.onBackPressed()
+                when {
+                    drawer_layout_fragment_my_info.isDrawerOpen(GravityCompat.END) ->
+                        drawer_layout_fragment_my_info.closeDrawer(GravityCompat.END)
+                    currentUser == null -> requestProfileCreation()
+                    else -> view_pager.currentItem = view_pager.currentItem - 1
+                }
             }
             else -> {
                 view_pager.currentItem = view_pager.currentItem - 1
@@ -153,6 +165,7 @@ class MainActivity : FragmentActivity() {
         view_pager.adapter = PagerFragmentStateAdapter(this)
 
         TabLayoutMediator(tab_layout, view_pager) { tab, position ->
+            tab.tag = position
             tab.text = tabTexts[position]
             tab.setIcon(tabIcons[position])
             tab.icon!!.setColorFilter(
@@ -168,11 +181,11 @@ class MainActivity : FragmentActivity() {
 
                     when {
                         firebaseAuth.currentUser == null -> {
-                            if (i != prListTabIndex)
+                            if (i != homeTabIndex)
                                 requestSignIn()
                         }
                         currentUser == null -> {
-                            if (i == myInfoTabIndex || i == prListTabIndex)
+                            if (i == myInfoTabIndex || i == homeTabIndex)
                                 tab_layout.getTabAt(i)?.select()
                             else
                                 requestProfileCreation()
@@ -199,6 +212,11 @@ class MainActivity : FragmentActivity() {
                 tab?.icon?.setColorFilter(
                     ContextCompat.getColor(
                         this@MainActivity, R.color.colorTabIconSelected), Mode.SRC_IN)
+
+                if ((tab?.tag as Int) == homeTabIndex)
+                    view_pager.isUserInputEnabled = false
+                else if (firebaseAuth.currentUser != null)
+                    view_pager.isUserInputEnabled = true
             }
         })
     }
@@ -208,11 +226,10 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun eventAfterLogin() {
-        if (FirebaseAuth.getInstance().currentUser != null)
-            readData()
-
+        readData()
         popAllFragments()
-        view_pager.isUserInputEnabled = true
+
+        view_pager.isUserInputEnabled = view_pager.currentItem != homeTabIndex
     }
 
     private fun popAllFragments() {
@@ -234,7 +251,7 @@ class MainActivity : FragmentActivity() {
 
         currentUser = null
         signUp = false
-        tab_layout.getTabAt(prListTabIndex)?.select()
+        tab_layout.getTabAt(homeTabIndex)?.select()
         view_pager.isUserInputEnabled = false
         popAllFragments()
     }
@@ -327,6 +344,12 @@ class MainActivity : FragmentActivity() {
                 println("$TAG: token generation failed")
             }
         }
+    }
+
+    fun moveToNextTab() {
+        println("THISCALLE ${view_pager.currentItem}")
+        tab_layout.getTabAt(view_pager.currentItem + 1)?.select()
+
     }
 
     /*

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -27,6 +28,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.fragment_my_info.*
+import kotlinx.android.synthetic.main.fragment_my_info.view.*
+import kotlinx.android.synthetic.main.fragment_my_info_navigation_drawer.*
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -42,7 +45,22 @@ class MyInfoFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_my_info, container, false)
+        val view = inflater.inflate(R.layout.fragment_my_info_navigation_drawer, container, false)
+
+        if (firebaseAuth.currentUser != null) {
+            if (MainActivity.currentUser != null) {
+                if (MainActivity.currentUser!!.profileImageFileDownloadUri.isNotBlank())
+                    loadProfileImage(view, MainActivity.currentUser!!.profileImageFileDownloadUri)
+
+                verified = MainActivity.currentUser!!.verified
+
+                view.edit_text_name.setText(MainActivity.currentUser!!.name)
+                view.edit_text_public_name.setText(MainActivity.currentUser!!.publicName)
+                view.edit_text_phone_number.setText(MainActivity.currentUser!!.phoneNumber)
+                view.edit_text_pr.setText(MainActivity.currentUser!!.pr)
+            }
+        }
+
         val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -56,26 +74,19 @@ class MyInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        (requireActivity() as MainActivity).setSupportActionBar(toolbar)
+        (requireActivity() as MainActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        image_view_menu.setOnClickListener {
+            drawer_layout_fragment_my_info.openDrawer(GravityCompat.END)
+        }
+
         image_view_profile.setOnClickListener {
             openGallery()
         }
 
         // for test
         verified = true
-
-        if (firebaseAuth.currentUser != null) {
-            if (MainActivity.currentUser != null) {
-                if (MainActivity.currentUser!!.profileImageFileDownloadUri.isNotBlank())
-                    loadProfileImage(MainActivity.currentUser!!.profileImageFileDownloadUri)
-
-                verified = MainActivity.currentUser!!.verified
-
-                edit_text_name.setText(MainActivity.currentUser!!.name)
-                edit_text_public_name.setText(MainActivity.currentUser!!.publicName)
-                edit_text_phone_number.setText(MainActivity.currentUser!!.phoneNumber)
-                edit_text_pr.setText(MainActivity.currentUser!!.pr)
-            }
-        }
 
         button_verification.setOnClickListener {
             if (edit_text_phone_number.text.isNotBlank() && !verified) {
@@ -84,7 +95,7 @@ class MyInfoFragment : Fragment() {
                 (activity as MainActivity)
                     .startFragment(
                         phoneAuthFragment,
-                        R.id.frame_layout_fragment_my_info,
+                        R.id.drawer_layout_fragment_my_info,
                         MainActivity.PHONE_AUTH_FRAGMENT_TAG
                     )
             } else {
@@ -134,15 +145,15 @@ class MyInfoFragment : Fragment() {
         edit_text_pr.text.clear()
     }
 
-    private fun loadProfileImage(profileImageFileUri: String) {
-        Glide.with(image_view_profile.context)
+    private fun loadProfileImage(view: View, profileImageFileUri: String) {
+        Glide.with(view.image_view_profile.context)
             .load(profileImageFileUri)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .skipMemoryCache(true)
             .error(R.drawable.ic_chat_64dp)
             .transition(DrawableTransitionOptions.withCrossFade())
             .transform(CircleCrop())
-            .into(image_view_profile)
+            .into(view.image_view_profile)
     }
 
     private fun openGallery() {

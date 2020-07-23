@@ -6,6 +6,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.google.firebase.auth.FirebaseAuth
 import kotlin.math.abs
 
 class OnSwipeTouchListener(private val context: Context): View.OnTouchListener {
@@ -28,14 +29,14 @@ class OnSwipeTouchListener(private val context: Context): View.OnTouchListener {
         }
 
         override fun onFling(
-            e1: MotionEvent,
-            e2: MotionEvent,
+            e1: MotionEvent?,
+            e2: MotionEvent?,
             velocityX: Float,
             velocityY: Float
         ): Boolean {
             var result = true
             try {
-                val diffY = e2.y - e1.y
+                val diffY = e2?.y!! - e1!!.y
                 val diffX = e2.x - e1.x
                 if (abs(diffX) > abs(diffY)) {
                     if (abs(diffX) > SWIPE_THRESHOLD && abs(
@@ -67,10 +68,15 @@ class OnSwipeTouchListener(private val context: Context): View.OnTouchListener {
         }
     }
 
-    fun onSwipeRight() {  }
+    fun onSwipeRight() {
+        (context as MainActivity).onBackPressed()
+    }
 
     fun onSwipeLeft() {
-        (context as MainActivity).requestSignIn()
+        if (FirebaseAuth.getInstance().currentUser == null)
+            (context as MainActivity).requestSignIn()
+        else
+            (context as MainActivity).moveToNextTab()
     }
 
     fun onSwipeTop() {  }

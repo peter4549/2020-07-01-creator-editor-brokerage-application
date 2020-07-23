@@ -10,14 +10,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.interfaces.OnSwipeTouchListener
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_IMAGES
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PR_LIST
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PrModel
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
@@ -46,6 +44,7 @@ class PrListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        /*
         if (FirebaseAuth.getInstance().currentUser == null) {
             recycler_view_pr_list.isLongClickable = true
             recycler_view_pr_list.setOnTouchListener(
@@ -55,6 +54,8 @@ class PrListFragment : Fragment() {
             recycler_view_pr_list.isLongClickable = false
             recycler_view_pr_list.setOnTouchListener(null)
         }
+
+         */
     }
 
     private fun initRecyclerView() {
