@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    tools:context=".fragments.FilterFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="체크 해제된 카테고리는 홈 화면에서 보이지 않습니다."
+            android:textSize="@dimen/text_size_large"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="최소 1개의 카테고리는 선택하셔야 합니다."
+            android:textSize="12sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_car"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_car" />
+
+            <CheckBox
+                android:id="@+id/check_box_beauty_fashion"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_beauty_fashion"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_comedy"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_comedy"/>
+
+            <CheckBox
+                android:id="@+id/check_box_education"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_education"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_entertainment"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_entertainment"/>
+
+            <CheckBox
+                android:id="@+id/check_box_family_entertainment"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_family_entertainment"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_movie_animation"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_movie_animation"/>
+
+            <CheckBox
+                android:id="@+id/check_box_food"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_food"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_game"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_game"/>
+
+            <CheckBox
+                android:id="@+id/check_box_know_how_style"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_know_how_style"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_music"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_music"/>
+
+            <CheckBox
+                android:id="@+id/check_box_news_politics"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_news_politics"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_non_profit_social_movement"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_non_profit_social_movement"/>
+
+            <CheckBox
+                android:id="@+id/check_box_people_blog"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_people_blog"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_pets_animals"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_pets_animals"/>
+
+            <CheckBox
+                android:id="@+id/check_box_science_technology"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_science_technology"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="8dp">
+
+            <CheckBox
+                android:id="@+id/check_box_sports"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_sports"/>
+
+            <CheckBox
+                android:id="@+id/check_box_travel_event"
+                style="@style/CheckBoxTheme"
+                android:text="@string/category_travel_event"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

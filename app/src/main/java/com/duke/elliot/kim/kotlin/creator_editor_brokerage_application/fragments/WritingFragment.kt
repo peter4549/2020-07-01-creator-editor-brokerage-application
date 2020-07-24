@@ -19,6 +19,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_IMAGES
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PR_LIST
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.ContentCategories
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PrModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
@@ -72,25 +73,25 @@ class WritingFragment : Fragment() {
         )
 
         categoryDocumentNames = mapOf(
-            contentCategories[0] to "none",
-            contentCategories[1] to "category_car",
-            contentCategories[2] to "category_beauty_fashion",
-            contentCategories[3] to "category_comedy",
-            contentCategories[4] to "category_education",
-            contentCategories[5] to "category_entertainment",
-            contentCategories[6] to "category_family_entertainment",
-            contentCategories[7] to "category_movie_animation",
-            contentCategories[8] to "category_food",
-            contentCategories[9] to "category_game",
-            contentCategories[10] to "category_know_how_style",
-            contentCategories[11] to "category_music",
-            contentCategories[12] to "category_news_politics",
-            contentCategories[13] to "category_non_profit_social_movement",
-            contentCategories[14] to "category_people_blog",
-            contentCategories[15] to "category_pets_animals",
-            contentCategories[16] to "category_science_technology",
-            contentCategories[17] to "category_sports",
-            contentCategories[18] to "category_travel_event"
+            contentCategories[0] to ContentCategories.NONE,
+            contentCategories[1] to ContentCategories.CAR,
+            contentCategories[2] to ContentCategories.BEAUTY_FASHION,
+            contentCategories[3] to ContentCategories.COMEDY,
+            contentCategories[4] to ContentCategories.EDUCATION,
+            contentCategories[5] to ContentCategories.ENTERTAINMENT,
+            contentCategories[6] to ContentCategories.FAMILY_ENTERTAINMENT,
+            contentCategories[7] to ContentCategories.MOVIE_ANIMATION,
+            contentCategories[8] to ContentCategories.FOOD,
+            contentCategories[9] to ContentCategories.GAME,
+            contentCategories[10] to ContentCategories.KNOW_HOW_STYLE,
+            contentCategories[11] to ContentCategories.MUSIC,
+            contentCategories[12] to ContentCategories.NEWS_POLITICS,
+            contentCategories[13] to ContentCategories.NON_PROFIT_SOCIAL_MOVEMENT,
+            contentCategories[14] to ContentCategories.PEOPLE_BLOG,
+            contentCategories[15] to ContentCategories.PETS_ANIMALS,
+            contentCategories[16] to ContentCategories.SCIENCE_TECHNOLOGY,
+            contentCategories[17] to ContentCategories.SPORTS,
+            contentCategories[18] to ContentCategories.TRAVEL_EVENT
         )
 
         selectedCategory = contentCategories[0]

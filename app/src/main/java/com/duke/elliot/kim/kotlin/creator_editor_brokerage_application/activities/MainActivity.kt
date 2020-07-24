@@ -1,6 +1,7 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -16,6 +17,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_CHAT
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.PERMISSIONS_REQUEST_CODE
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.PREFERENCES_EXCLUDED_CATEGORIES
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChatRoomModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
@@ -60,9 +62,9 @@ class MainActivity : AppCompatActivity() {
         firebaseAuth = FirebaseAuth.getInstance()
         authStateListener = AuthStateListener { firebaseAuth ->
             if (firebaseAuth.currentUser != null)
-                eventAfterLogin()
+                eventAfterSignIn()
             else
-                eventAfterLogout()
+                eventAfterSignOut()
         }
 
         firebaseAuth.addAuthStateListener(authStateListener)
@@ -134,6 +136,7 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         when {
             supportFragmentManager.findFragmentByTag(CHAT_FRAGMENT_TAG) != null -> super.onBackPressed()
+            supportFragmentManager.findFragmentByTag(FILTER_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(PHONE_AUTH_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(PR_FRAGMENT_TAG) != null -> super.onBackPressed()
@@ -151,7 +154,7 @@ class MainActivity : AppCompatActivity() {
                 when {
                     drawer_layout_fragment_my_info.isDrawerOpen(GravityCompat.END) ->
                         drawer_layout_fragment_my_info.closeDrawer(GravityCompat.END)
-                    currentUser == null -> requestProfileCreation()
+                    currentUser == null -> super.onBackPressed()
                     else -> view_pager.currentItem = view_pager.currentItem - 1
                 }
             }
@@ -225,7 +228,7 @@ class MainActivity : AppCompatActivity() {
         chatRoomsFragment = ChatRoomsFragment()
     }
 
-    private fun eventAfterLogin() {
+    private fun eventAfterSignIn() {
         readData()
         popAllFragments()
 
@@ -245,15 +248,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun eventAfterLogout() {
+    private fun eventAfterSignOut() {
         if (supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null)
             showToast(this, getString(R.string.sign_out_message))
+
+        clearPreferences()
 
         currentUser = null
         signUp = false
         tab_layout.getTabAt(homeTabIndex)?.select()
         view_pager.isUserInputEnabled = false
         popAllFragments()
+    }
+
+    private fun clearPreferences() {
+        this.getSharedPreferences(
+            PREFERENCES_EXCLUDED_CATEGORIES, Context.MODE_PRIVATE).edit().clear().apply()
     }
 
     fun startFragment(fragment: Fragment,
@@ -347,9 +357,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun moveToNextTab() {
-        println("THISCALLE ${view_pager.currentItem}")
         tab_layout.getTabAt(view_pager.currentItem + 1)?.select()
-
     }
 
     /*
@@ -376,6 +384,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val TAG = "MainActivity"
         const val CHAT_FRAGMENT_TAG = "chat_fragment_tag"
+        const val FILTER_FRAGMENT_TAG = "filter_fragment_tag"
         const val LOGIN_FRAGMENT_TAG = "login_fragment_tag"
         const val PHONE_AUTH_FRAGMENT_TAG = "phone_auth_fragment_tag"
         const val PR_FRAGMENT_TAG = "pr_fragment_tag"

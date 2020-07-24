@@ -9,28 +9,28 @@
     android:orientation="vertical"
     tools:context=".fragments.MyInfoFragment">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize">
-
-        <ImageView
-            android:id="@+id/image_view_menu"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="end"
-            android:layout_margin="8dp"
-            android:src="@drawable/ic_menu_white_32dp"
-            android:tint="@android:color/holo_blue_dark"/>
-
-    </androidx.appcompat.widget.Toolbar>
-
     <LinearLayout
         android:id="@+id/linear_layout_fragment_my_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize">
+
+            <ImageView
+                android:id="@+id/image_view_menu"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="end"
+                android:layout_margin="8dp"
+                android:src="@drawable/ic_menu_white_32dp"
+                android:tint="@android:color/holo_blue_dark"/>
+
+        </androidx.appcompat.widget.Toolbar>
 
         <TextView
             android:layout_width="match_parent"

@@ -39,6 +39,17 @@
         <item name="android:dividerHeight">0.5dp</item>
     </style>
 
+    <style name="CheckBoxTheme">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">start|center_vertical</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:paddingEnd">@dimen/padding_middle_large</item>
+        <item name="android:paddingStart">@dimen/padding_middle_large</item>
+    </style>
+
     <!-- Font style -->
     <style name="TextViewFontStyle" parent="@android:style/Widget.DeviceDefault.TextView">
         <item name="android:fontFamily">@font/nanum_gothic_font_family</item>

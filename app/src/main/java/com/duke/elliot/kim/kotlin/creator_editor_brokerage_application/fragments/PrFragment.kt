@@ -99,14 +99,13 @@ class PrFragment : Fragment() {
 
     private fun confirmToStartChatting() {
         val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle("채팅 시작")
-        builder.setMessage("채팅을 시작합니다.")
-        builder.setPositiveButton("확인") { _, _ ->
+        builder.setMessage(getString(R.string.start_chatting))
+        builder.setPositiveButton(getString(R.string.ok)) { _, _ ->
             val job = Job() as Job
             CoroutineScope(Dispatchers.IO + job).launch {
                 checkExistingRooms()
             }
-        }.setNegativeButton("취소") { _, _ -> }
+        }.setNegativeButton(getString(R.string.cancel)) { _, _ -> }
             .create().show()
     }
 
@@ -153,7 +152,6 @@ class PrFragment : Fragment() {
         }
 
         val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle("채팅방 생성")
         builder.setMessage(message)
         builder.setPositiveButton("생성") { _, _ -> enterNewChatRoom() }
             .setNeutralButton(neutralButtonText) { _, _ ->

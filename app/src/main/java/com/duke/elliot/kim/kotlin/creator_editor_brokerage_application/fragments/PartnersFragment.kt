@@ -26,15 +26,16 @@ class PartnersFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        test_id.isLongClickable = true
+        test_id.setOnTouchListener(OnSwipeTouchListener(requireActivity()))
     }
 
     override fun onResume() {
         super.onResume()
 
-        test_id.isLongClickable = true
-        test_id.setOnTouchListener(
-            OnSwipeTouchListener(requireActivity())
-        )
+        // 액티비티서 해제해주던지..
+
 
         /*
         if (FirebaseAuth.getInstance().currentUser == null) {
@@ -46,9 +47,7 @@ class PartnersFragment : Fragment() {
          */
     }
 
-    override fun onDestroy() {
-        test_id.isLongClickable = false
-        test_id.setOnTouchListener(null)
-        super.onDestroy()
+    override fun onStop() {
+        super.onStop()
     }
 }

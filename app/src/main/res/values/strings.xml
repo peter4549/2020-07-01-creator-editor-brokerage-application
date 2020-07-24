@@ -3,6 +3,9 @@
     <string name="facebook_app_id">871598669995139</string>
     <string name="fb_login_protocol_scheme">fb871598669995139</string>
 
+    <!-- common -->
+    <string name="ok">확인</string>
+
     <!-- verification -->
     <string name="code_lost">인증번호가 손실되었습니다.</string>
     <string name="code_sent">인증번호가 발송되었습니다.</string>
@@ -16,6 +19,7 @@
     <string name="chat_room_creation_success_message">채팅방이 생성되었습니다.</string>
     <string name="failed_to_find_chat_room_message">채팅방을 찾지 못했습니다.</string>
     <string name="failed_to_find_publisher">퍼블리셔를 찾을 수 없습니다.</string>
+    <string name="start_chatting">채팅을 시작합니다.</string>
 
     <!-- sign in and sign up -->
     <string name="authentication_failure_message">인증에 실패했습니다.</string>
@@ -78,8 +82,6 @@
     <!-- data -->
     <string name="data_read_failed_message">데이터를 읽어올 수 없습니다.</string>
 
-    <string name="default_notification_channel_id">default_notification_channel_id</string>
-
     <!-- navigation drawer -->
     <string name="my_stars">나의 별</string>
     <string name="partners">파트너</string>
@@ -89,5 +91,17 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- home toolbar menu -->
+    <string name="search">검색</string>
+    <string name="filter">필터</string>
+    <string name="notifications">알림</string>
+    <string name="category_filter">카테고리 필터</string>
+
+    <!-- pr item view -->
+    <string name="thumbnail">Thumbnail</string>
+
+    <!-- firebase -->
+    <string name="default_notification_channel_id">default_notification_channel_id</string>
 
 </resources>

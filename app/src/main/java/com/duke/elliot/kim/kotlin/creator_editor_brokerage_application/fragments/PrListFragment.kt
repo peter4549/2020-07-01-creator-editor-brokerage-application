@@ -8,7 +8,9 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
@@ -40,22 +42,6 @@ class PrListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        /*
-        if (FirebaseAuth.getInstance().currentUser == null) {
-            recycler_view_pr_list.isLongClickable = true
-            recycler_view_pr_list.setOnTouchListener(
-                OnSwipeTouchListener(requireActivity())
-            )
-        } else {
-            recycler_view_pr_list.isLongClickable = false
-            recycler_view_pr_list.setOnTouchListener(null)
-        }
-
-         */
     }
 
     private fun initRecyclerView() {
@@ -99,7 +85,7 @@ class PrListFragment : Fragment() {
             holder.view.setOnClickListener {
                 val prFragment = PrFragment()
                 prFragment.setPr(pr)
-                (activity as MainActivity).startFragment(prFragment, R.id.frame_layout_fragment_pr_list, MainActivity.PR_FRAGMENT_TAG)
+                (activity as MainActivity).startFragment(prFragment, R.id.relative_layout_activity_main, MainActivity.PR_FRAGMENT_TAG)
             }
         }
 
@@ -115,7 +101,7 @@ class PrListFragment : Fragment() {
                                 .load(task.result)
                                 .error(R.drawable.ic_chat_64dp)
                                 .transition(DrawableTransitionOptions.withCrossFade())
-                                .transform(CircleCrop())
+                                .transform(CenterCrop(), RoundedCorners(16))
                                 .into(imageView)
                         } else {
                             println("$TAG: ${task.exception}")
