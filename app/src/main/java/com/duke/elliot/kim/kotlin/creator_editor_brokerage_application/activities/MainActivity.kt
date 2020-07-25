@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.PagerFragmentStateAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_CHAT
@@ -30,7 +31,7 @@ import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_my_info_navigation_drawer.*
+import kotlinx.android.synthetic.main.fragment_my_info_drawer.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -110,6 +111,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         firebaseAuth.removeAuthStateListener(authStateListener)
         chatRoomsFragment.removeChatRoomSnapshotListener()
+        partnersFragment.removePartnersSnapshotListener()
         prListFragment.removePrSnapshotListener()
         super.onDestroy()
     }
@@ -166,6 +168,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun initViewPagerAndTabLayout() {
         view_pager.adapter = PagerFragmentStateAdapter(this)
+        view_pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            var pageChanged = false
+            var position = 0
+
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                pageChanged = true
+                this.position = position
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                super.onPageScrollStateChanged(state)
+
+                if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    if (pageChanged) {
+                        showToast(this@MainActivity, "curr page $position")
+                    }
+                }
+            }
+        })
 
         TabLayoutMediator(tab_layout, view_pager) { tab, position ->
             tab.tag = position

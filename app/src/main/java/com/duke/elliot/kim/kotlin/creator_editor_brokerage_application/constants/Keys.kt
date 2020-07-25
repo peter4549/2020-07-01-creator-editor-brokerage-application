@@ -7,6 +7,7 @@ const val COLLECTION_IMAGES = "images"
 const val COLLECTION_PR_LIST = "pr_list"
 const val COLLECTION_CHAT = "chat"
 const val COLLECTION_CHAT_MESSAGES = "chat_messages"
+const val COLLECTION_PARTNERS = "partners"
 
 // Common
 const val KEY_PUSH_TOKEN = "pushToken"

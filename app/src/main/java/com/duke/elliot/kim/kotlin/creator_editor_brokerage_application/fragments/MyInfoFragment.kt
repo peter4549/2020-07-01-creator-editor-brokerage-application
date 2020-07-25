@@ -1,5 +1,6 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -14,9 +15,11 @@ import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PARTNERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PROFILE_IMAGES
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.REQUEST_CODE_GALLERY
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PartnerModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.facebook.login.LoginManager
@@ -29,10 +32,11 @@ import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.fragment_my_info.*
 import kotlinx.android.synthetic.main.fragment_my_info.view.*
-import kotlinx.android.synthetic.main.fragment_my_info_navigation_drawer.*
+import kotlinx.android.synthetic.main.fragment_my_info_drawer.*
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.HashMap
 
 class MyInfoFragment : Fragment() {
 
@@ -45,20 +49,22 @@ class MyInfoFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_my_info_navigation_drawer, container, false)
+        val view = inflater.inflate(R.layout.fragment_my_info_drawer, container, false)
 
-        if (firebaseAuth.currentUser != null) {
-            if (MainActivity.currentUser != null) {
-                if (MainActivity.currentUser!!.profileImageFileDownloadUri.isNotBlank())
-                    loadProfileImage(view, MainActivity.currentUser!!.profileImageFileDownloadUri)
+        (requireActivity() as MainActivity).setSupportActionBar(view.toolbar)
+        (requireActivity() as MainActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
 
-                verified = MainActivity.currentUser!!.verified
+        if (MainActivity.currentUser != null) {
+            if (MainActivity.currentUser!!.profileImageFileDownloadUri.isNotBlank())
+                loadProfileImage(view, MainActivity.currentUser!!.profileImageFileDownloadUri)
 
-                view.edit_text_name.setText(MainActivity.currentUser!!.name)
-                view.edit_text_public_name.setText(MainActivity.currentUser!!.publicName)
-                view.edit_text_phone_number.setText(MainActivity.currentUser!!.phoneNumber)
-                view.edit_text_pr.setText(MainActivity.currentUser!!.pr)
-            }
+            verified = MainActivity.currentUser!!.verified
+
+            view.edit_text_name.setText(MainActivity.currentUser!!.name)
+            view.edit_text_public_name.setText(MainActivity.currentUser!!.publicName)
+            view.edit_text_phone_number.setText(MainActivity.currentUser!!.phoneNumber)
+            view.edit_text_pr.setText(MainActivity.currentUser!!.pr)
+            view.button_partners_registration.visibility = View.VISIBLE
         }
 
         val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -73,9 +79,6 @@ class MyInfoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        (requireActivity() as MainActivity).setSupportActionBar(toolbar)
-        (requireActivity() as MainActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
 
         image_view_menu.setOnClickListener {
             drawer_layout_fragment_my_info.openDrawer(GravityCompat.END)
@@ -113,14 +116,13 @@ class MyInfoFragment : Fragment() {
                 showToast(requireContext(), getString(R.string.request_verification))
         }
 
-        button_logout.setOnClickListener {
-            logout()
+        button_partners_registration.setOnClickListener {
+            confirmRegisterForPartners()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
+    override fun onStop() {
+        super.onStop()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -243,19 +245,36 @@ class MyInfoFragment : Fragment() {
                     user.pushToken = task.result?.token  // Set pushToken
                     println("$TAG: token generated")
 
-                    FirebaseFirestore.getInstance()
+                    val documentReference = FirebaseFirestore.getInstance()
                         .collection(COLLECTION_USERS)
                         .document(firebaseAuth.currentUser?.uid.toString())
-                        .set(user)
-                        .addOnCompleteListener { setTask ->
-                            if (setTask.isSuccessful) {
-                                showToast(requireContext(), getString(R.string.profile_uploaded))
-                                MainActivity.currentUser = user
-                            } else {
-                                showToast(requireContext(), getString(R.string.profile_upload_failed))
-                                println("$TAG: ${setTask.exception}")
+
+                    if (MainActivity.currentUser == null) {
+                        documentReference
+                            .set(user)
+                            .addOnCompleteListener { setTask ->
+                                if (setTask.isSuccessful) {
+                                    showToast(requireContext(), getString(R.string.profile_set))
+                                    MainActivity.currentUser = user
+                                    button_partners_registration.visibility = View.VISIBLE
+                                } else {
+                                    showToast(requireContext(), getString(R.string.profile_set_failed))
+                                    println("$TAG: ${setTask.exception}")
+                                }
                             }
-                        }
+                    } else {
+                        documentReference
+                            .update(user.toHashMap())
+                            .addOnCompleteListener { setTask ->
+                                if (setTask.isSuccessful) {
+                                    showToast(requireContext(), getString(R.string.profile_updated))
+                                    MainActivity.currentUser = user
+                                } else {
+                                    showToast(requireContext(), getString(R.string.profile_update_failed))
+                                    println("$TAG: ${setTask.exception}")
+                                }
+                            }
+                    }
                 } else {
                     showToast(requireContext(), getString(R.string.token_generation_failure_message))
                     println("$TAG: token generation failed")
@@ -264,7 +283,75 @@ class MyInfoFragment : Fragment() {
         }
     }
 
-    private fun logout() {
+    private fun confirmRegisterForPartners() {
+        val builder = AlertDialog.Builder(requireContext())
+        val message =
+            if (MainActivity.currentUser!!.registeredOnPartners)
+                getString(R.string.ask_for_update_on_partners)
+            else
+                getString(R.string.ask_for_register_on_partners)
+
+        builder.setMessage(message)
+        builder.setPositiveButton(getString(R.string.login)) { _, _ ->
+            registerForPartners()
+        }.setNegativeButton(getString(R.string.cancel)) { _, _ -> }
+            .create().show()
+    }
+
+    private fun registerForPartners() {
+        if (MainActivity.currentUser != null) {
+            val documentReference = FirebaseFirestore.getInstance().collection(COLLECTION_PARTNERS)
+                .document(MainActivity.currentUser!!.id)
+            val partner = PartnerModel()
+            partner.occupation = MainActivity.currentUser!!.occupation
+            partner.profileImageUri = MainActivity.currentUser!!.profileImageFileDownloadUri
+            partner.publicName = MainActivity.currentUser!!.publicName
+            partner.stars = MainActivity.currentUser!!.stars.count()
+            partner.statusMessage = "Status Message"
+            partner.uid = MainActivity.currentUser!!.id
+
+            if (MainActivity.currentUser!!.registeredOnPartners) {
+                documentReference.update(partner.toHashMap())
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            showToast(requireContext(), getString(R.string.updated_on_partners))
+                            updateRegisterOnPartners(true)
+                        } else {
+                            showToast(requireContext(), getString(R.string.failed_to_update_on_partners))
+                            println("$TAG: ${task.exception}")
+                        }
+                    }
+            } else {
+                documentReference.set(partner)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            showToast(requireContext(), getString(R.string.register_on_partners))
+                            updateRegisterOnPartners(true)
+                        } else {
+                            showToast(requireContext(), getString(R.string.failed_to_register_on_partners))
+                            println("$TAG: ${task.exception}")
+                        }
+                    }
+            }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun updateRegisterOnPartners(registered: Boolean) {
+        FirebaseFirestore.getInstance()
+            .collection(COLLECTION_USERS).document(MainActivity.currentUser!!.id)
+            .update(hashMapOf(UserModel.KEY_REGISTERED_ON_PARTNERS to registered) as HashMap<String, Any>)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    MainActivity.currentUser!!.registeredOnPartners = true
+                    println("$TAG: \"registerOnPartners\" updated")
+                }
+                else
+                    println("$TAG: ${task.exception}")
+            }
+    }
+
+    private fun signOut() {
         clearUI()
         FirebaseAuth.getInstance().signOut()
         googleSignInClient?.signOut()

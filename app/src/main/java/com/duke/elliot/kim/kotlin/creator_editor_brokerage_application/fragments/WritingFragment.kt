@@ -249,7 +249,7 @@ class WritingFragment : Fragment() {
         storageReference.putFile(uri).continueWithTask {
             return@continueWithTask storageReference.downloadUrl
         }.addOnSuccessListener {
-            println("$TAG: Image uploaded, Uri: $it")
+            println("$TAG: image uploaded, uri: $it")
         }
     }
 

@@ -110,10 +110,11 @@
             android:text="저장"/>
 
         <Button
-            android:id="@+id/button_logout"
+            android:id="@+id/button_partners_registration"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="로그아웃"/>
+            android:text="파트너스 등록"
+            android:visibility="gone"/>
 
         </LinearLayout>
 

@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
@@ -45,7 +44,7 @@ class PrListFragment : Fragment() {
     }
 
     private fun initRecyclerView() {
-        recycler_view_pr_list.apply {
+        recycler_view.apply {
             setHasFixedSize(true)
             adapter = PrListRecyclerViewAdapter()
             layoutManager = LayoutManagerWrapper(context, 1)
@@ -59,7 +58,7 @@ class PrListFragment : Fragment() {
         inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 
         init {
-            setPrSnapshotListener(this)
+            setPrListSnapshotListener(this)
         }
 
         override fun onCreateViewHolder(
@@ -126,7 +125,7 @@ class PrListFragment : Fragment() {
         private fun getPosition(pr: PrModel) = prList.indexOf(pr)
     }
 
-    private fun setPrSnapshotListener(prListRecyclerViewAdapter: PrListRecyclerViewAdapter) {
+    private fun setPrListSnapshotListener(prListRecyclerViewAdapter: PrListRecyclerViewAdapter) {
         listenerRegistration = collectionReference.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
             if (firebaseFirestoreException != null)
                 println("$TAG: $firebaseFirestoreException")
