@@ -88,6 +88,10 @@ class MyInfoFragment : Fragment() {
             openGallery()
         }
 
+        text_view_sign_out.setOnClickListener {
+            signOut()
+        }
+
         // for test
         verified = true
 

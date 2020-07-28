@@ -14,5 +14,5 @@ const val KEY_PUSH_TOKEN = "pushToken"
 
 // must be moved...
 const val API_KEY =
-    "key=AAAAi-iss7Q:APA91bEBStlhkp7asJn72PEZUtMvql_1oLb_LC5DfJ-RwpaRUQYrPJR1WEGAZXqCPQ5eqqBdQtdA5MM0J2oJQSSNi27BxiNCuIaaySVyXhYr1mMdIlJoCFtJboy2ydOjfLy59Fj_Khmu"
-const val SENDER_ID = "600904086452"
+    "key=AAAAQR5ef4c:APA91bGkQk3nLDSrMrjKtRWhUQVUm7ki7UZAU1SQkoOP43IxA2FvWPQoq2iNWwP0L7hq1mrdisoiQwsJu3-rCniINzNneA_J4tZEhE9TMuGZPnY2UD1MFPgO-saT4K3fFNR3pTyKt-4z"
+const val SENDER_ID = "279682383751"

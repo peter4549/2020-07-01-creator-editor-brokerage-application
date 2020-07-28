@@ -55,6 +55,15 @@
 
             </LinearLayout>
 
+            <Button
+                android:id="@+id/button_upload_youtube_videos"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="유튜브 비디오 등록"
+                android:textSize="20sp"/>
+
             <Spinner
                 android:id="@+id/spinner_categories"
                 android:layout_width="match_parent"

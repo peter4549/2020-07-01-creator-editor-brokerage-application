@@ -15,11 +15,9 @@ import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.REQUEST_CODE_GALLERY
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_IMAGES
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PR_LIST
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.ContentCategories
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.ObtainOAuthAccessTokenActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PrModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
@@ -121,6 +119,10 @@ class WritingFragment : Fragment() {
         image_view_add_2.setOnClickListener(onImageViewClickListener)
         image_view_add_3.setOnClickListener(onImageViewClickListener)
 
+        button_upload_youtube_videos.setOnClickListener {
+            obtainOAuthAccessToken()
+        }
+
         button_upload.setOnClickListener {
             saveData()
         }
@@ -184,6 +186,10 @@ class WritingFragment : Fragment() {
         }
     }
 
+    private fun obtainOAuthAccessToken() {
+        startActivity(Intent((activity as MainActivity), ObtainOAuthAccessTokenActivity::class.java))
+    }
+
     private fun saveData() {
         if (edit_text_title.text.isBlank()) {
             showToast(requireContext(), "제목을 입력해주세요.")
@@ -214,7 +220,7 @@ class WritingFragment : Fragment() {
 
                 pr.publisherId = user.id
                 pr.publisherName = user.publicName
-                pr.occupation = ""
+                pr.occupation = "a"
                 pr.category = categoryDocumentNames.getValue(selectedCategory)
                 pr.title = edit_text_title.text.toString()
                 pr.content = (edit_text_content.text ?: "").toString()

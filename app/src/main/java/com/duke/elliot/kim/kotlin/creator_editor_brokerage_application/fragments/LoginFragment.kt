@@ -111,8 +111,10 @@ class LoginFragment : Fragment() {
                 task ->
             if (task.isSuccessful)
                 println("$TAG: login with Google")
-            else
+            else {
                 showToast(requireContext(), getString(R.string.authentication_failure_message))
+                println("$TAG: ${task.exception}")
+            }
         }
     }
 
@@ -141,8 +143,10 @@ class LoginFragment : Fragment() {
                 task ->
             if (task.isSuccessful)
                 println("$TAG: login with Facebook")
-            else
+            else {
                 showToast(requireContext(), getString(R.string.authentication_failure_message))
+                println("$TAG: ${task.exception}")
+            }
         }
     }
 

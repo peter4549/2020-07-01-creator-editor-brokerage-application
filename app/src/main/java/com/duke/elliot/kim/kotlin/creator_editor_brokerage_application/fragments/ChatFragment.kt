@@ -287,7 +287,7 @@ class ChatFragment(private var chatRoom: ChatRoomModel? = null,
         okHttpClient.newCall(request).enqueue(object: Callback {
             override fun onFailure(request: Request?, e: IOException?) {
                 showToast(requireContext(), getString(R.string.chat_message_sending_failure_message))
-                println("${PrFragment.TAG}: ${e?.message}")
+                println("$TAG: ${e?.message}")
             }
 
             override fun onResponse(response: Response?) {

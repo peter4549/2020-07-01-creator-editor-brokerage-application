@@ -140,6 +140,7 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentByTag(CHAT_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(FILTER_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(LOGIN_FRAGMENT_TAG) != null -> super.onBackPressed()
+            supportFragmentManager.findFragmentByTag(OBTAIN_OAUTH_ACCESS_TOKEN_FRAGMENT) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(PHONE_AUTH_FRAGMENT_TAG) != null -> super.onBackPressed()
             supportFragmentManager.findFragmentByTag(PR_FRAGMENT_TAG) != null -> super.onBackPressed()
             view_pager.currentItem == homeTabIndex -> {
@@ -294,10 +295,10 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .addToBackStack(null)
             .setCustomAnimations(
-                R.anim.anim_slide_in_left_enter,
-                R.anim.anim_slide_in_left_exit,
-                R.anim.anim_slide_out_right_enter,
-                R.anim.anim_slide_out_right_exit
+                R.anim.anim_slide_in_left,
+                R.anim.anim_slide_out_left,
+                R.anim.anim_slide_in_right,
+                R.anim.anim_slide_out_right
             ).replace(containerViewId, fragment, tag).commit()
     }
 
@@ -408,6 +409,7 @@ class MainActivity : AppCompatActivity() {
         const val CHAT_FRAGMENT_TAG = "chat_fragment_tag"
         const val FILTER_FRAGMENT_TAG = "filter_fragment_tag"
         const val LOGIN_FRAGMENT_TAG = "login_fragment_tag"
+        const val OBTAIN_OAUTH_ACCESS_TOKEN_FRAGMENT = "obtain_oauth_access_token_fragment"
         const val PHONE_AUTH_FRAGMENT_TAG = "phone_auth_fragment_tag"
         const val PR_FRAGMENT_TAG = "pr_fragment_tag"
 

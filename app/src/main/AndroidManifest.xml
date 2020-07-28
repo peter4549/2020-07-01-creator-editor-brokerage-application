@@ -2,8 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.duke.elliot.kim.kotlin.creator_editor_brokerage_application">
 
+    <uses-permission
+        android:name="android.permission.GET_ACCOUNTS"
+        android:maxSdkVersion="22" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
+
+    <uses-permission
+        android:name="android.permission.USE_CREDENTIALS"
+        android:maxSdkVersion="22" />
 
     <application
         android:allowBackup="true"
@@ -15,15 +22,32 @@
         <activity android:name=".activities.SplashActivity">
             <intent-filter>
                 <action android:name="action_test" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.MainActivity"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".activities.ObtainOAuthAccessTokenActivity"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="callback"
+                    android:scheme="auth" />
             </intent-filter>
         </activity>
 
@@ -60,6 +84,21 @@
             </intent-filter>
             -->
         </receiver>
+
+        <receiver
+            android:name=".broadcast_receiver.SmsReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+
+            <!--
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+            -->
+        </receiver>
+
+        <receiver android:name=".broadcast_receiver.CustomTabsReceiver" />
 
         <service
             android:name=".services.FirebaseMessagingService"
