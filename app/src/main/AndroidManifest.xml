@@ -7,10 +7,10 @@
         android:maxSdkVersion="22" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-
     <uses-permission
         android:name="android.permission.USE_CREDENTIALS"
         android:maxSdkVersion="22" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:allowBackup="true"
@@ -19,6 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".activities.YouTubeVideosActivity" />
         <activity android:name=".activities.SplashActivity">
             <intent-filter>
                 <action android:name="action_test" />
@@ -26,7 +27,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".activities.MainActivity"
             android:windowSoftInputMode="adjustPan">
@@ -36,9 +36,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".activities.ObtainOAuthAccessTokenActivity"
-            android:launchMode="singleTop">
+        <activity
+            android:name=".activities.YouTubeChannelsActivity"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -84,7 +84,6 @@
             </intent-filter>
             -->
         </receiver>
-
         <receiver
             android:name=".broadcast_receiver.SmsReceiver"
             android:enabled="true"
@@ -97,7 +96,6 @@
             </intent-filter>
             -->
         </receiver>
-
         <receiver android:name=".broadcast_receiver.CustomTabsReceiver" />
 
         <service
@@ -107,6 +105,8 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <service android:name=".services.CheckUrlJobIntentService" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"

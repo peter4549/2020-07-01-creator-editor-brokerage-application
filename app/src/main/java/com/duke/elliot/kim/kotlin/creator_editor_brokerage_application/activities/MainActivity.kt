@@ -108,14 +108,6 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    override fun onDestroy() {
-        firebaseAuth.removeAuthStateListener(authStateListener)
-        chatRoomsFragment.removeChatRoomSnapshotListener()
-        partnersFragment.removePartnersSnapshotListener()
-        prListFragment.removePrSnapshotListener()
-        super.onDestroy()
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         callbackManager?.onActivityResult(requestCode, resultCode, data)
@@ -165,6 +157,14 @@ class MainActivity : AppCompatActivity() {
                 view_pager.currentItem = view_pager.currentItem - 1
             }
         }
+    }
+
+    override fun onDestroy() {
+        firebaseAuth.removeAuthStateListener(authStateListener)
+        chatRoomsFragment.removeChatRoomSnapshotListener()
+        partnersFragment.removePartnersSnapshotListener()
+        prListFragment.removePrSnapshotListener()
+        super.onDestroy()
     }
 
     private fun initViewPagerAndTabLayout() {
@@ -254,8 +254,6 @@ class MainActivity : AppCompatActivity() {
     private fun eventAfterSignIn() {
         readData()
         popAllFragments()
-
-        view_pager.isUserInputEnabled = view_pager.currentItem != homeTabIndex
     }
 
     private fun popAllFragments() {
@@ -343,6 +341,7 @@ class MainActivity : AppCompatActivity() {
         else
             currentUser = UserModel(map)
 
+        view_pager.isUserInputEnabled = view_pager.currentItem != homeTabIndex
         createToken()
     }
 

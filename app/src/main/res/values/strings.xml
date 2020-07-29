@@ -109,6 +109,12 @@
     <string name="register_on_partners">파트너스에 등록했습니다.</string>
     <string name="failed_to_register_on_partners">파트너스 등록에 실패했습니다.</string>
     <string name="complete">완료</string>
+    <string name="add">add</string>
+    <string name="add_channel">채널 추가</string>
+    <string name="no_registered_channel">등록된 채널이 없습니다.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!--string name="default_web_client_id">279682383751-rdjblp84735k1piq5ra4c61ti6a1mlgr.apps.googleusercontent.com</string> -->
     <!-- 279682383751-umfg61b7i143qabqbootevo4osdvurbl.apps.googleusercontent.com -->

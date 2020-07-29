@@ -27,13 +27,17 @@
                     android:id="@+id/text_view_public_name"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_toStartOf="@id/text_view_time"/>
+                    android:layout_toStartOf="@id/text_view_time"
+                    android:ellipsize="end"
+                    android:maxLines="1"/>
 
                 <TextView
                     android:id="@+id/text_view_time"
                     android:layout_width="80dp"
                     android:layout_height="match_parent"
-                    android:layout_alignParentEnd="true"/>
+                    android:layout_alignParentEnd="true"
+                    android:ellipsize="end"
+                    android:maxLines="1"/>
 
             </RelativeLayout>
 
@@ -41,7 +45,9 @@
                 android:id="@+id/text_view_message"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"/>
 
         </LinearLayout>
 

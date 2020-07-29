@@ -8,17 +8,21 @@ import android.view.ViewGroup
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 
-/**
- * A simple [Fragment] subclass.
- */
 class YouTubeVideosFragment : Fragment() {
+
+    private lateinit var channelId: String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_you_tube_videos, container, false)
     }
+
+    fun setChannelId(channelId: String) {
+        this.channelId = channelId
+    }
+
+
 
 }

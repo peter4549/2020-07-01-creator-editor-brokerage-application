@@ -221,7 +221,7 @@ class MyInfoFragment : Fragment() {
         }.addOnCompleteListener {
             if (it.isSuccessful) {
                 profileImageFileDownloadUri = it.result
-                println("$TAG: Image uploaded")
+                println("$TAG: image uploaded")
             } else {
                 showToast(requireContext(), getString(R.string.image_upload_failed))
                 println("$TAG: ${it.exception}")
@@ -236,12 +236,14 @@ class MyInfoFragment : Fragment() {
         CoroutineScope(Dispatchers.IO + job).launch {
             val user = UserModel()
 
+            user.channelIds = MainActivity.currentUser?.channelIds ?: mutableListOf()
             user.id = firebaseAuth.currentUser?.uid.toString()
             user.name = edit_text_name.text.toString()
             user.phoneNumber = edit_text_phone_number.text.toString()
             user.pr = (edit_text_pr.text ?: "").toString()
             user.profileImageFileDownloadUri = profileImageFileDownloadUri.toString()
             user.publicName = edit_text_public_name.text.toString()
+            user.registeredOnPartners = MainActivity.currentUser?.registeredOnPartners ?: false
             user.verified = verified
 
             FirebaseInstanceId.getInstance().instanceId.addOnCompleteListener { task ->

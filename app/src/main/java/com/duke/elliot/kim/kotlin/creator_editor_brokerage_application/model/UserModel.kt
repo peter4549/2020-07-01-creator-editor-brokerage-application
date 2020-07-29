@@ -3,6 +3,7 @@ package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model
 @Suppress("UNCHECKED_CAST")
 class UserModel(map: Map<String, Any>? = null) {
 
+    var channelIds: MutableList<String>
     var comments: HashMap<String, String>
     var id: String
     var name: String
@@ -18,6 +19,7 @@ class UserModel(map: Map<String, Any>? = null) {
 
     init {
         if (map == null) {
+            channelIds = mutableListOf()
             comments = hashMapOf()
             id = ""
             name = ""
@@ -31,6 +33,7 @@ class UserModel(map: Map<String, Any>? = null) {
             stars = mutableListOf()
             verified = false
         } else {
+            channelIds = map[KEY_CHANNEL_IDS] as MutableList<String>
             comments = map[KEY_COMMENTS] as HashMap<String, String>
             id = map[KEY_ID] as String
             name = map[KEY_NAME] as String
@@ -78,6 +81,7 @@ class UserModel(map: Map<String, Any>? = null) {
         )
 
     companion object {
+        const val KEY_CHANNEL_IDS = "channelIds"
         const val KEY_COMMENTS = "comments"
         const val KEY_ID = "id"
         const val KEY_NAME = "name"
