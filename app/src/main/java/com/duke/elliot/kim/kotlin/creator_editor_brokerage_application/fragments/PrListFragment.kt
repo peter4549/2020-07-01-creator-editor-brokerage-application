@@ -79,7 +79,7 @@ class PrListFragment : Fragment() {
             // holder.view.text_view_publisher = prList[position].get
             @Suppress("UNCHECKED_CAST")
             loadImage(holder.view.image_view_thumbnail,
-                pr.publisherId, pr.imageNames as List<String?>)
+                pr.publisherId, pr.imageNames as List<String?>, pr.thumbnailUri)
 
             holder.view.setOnClickListener {
                 val prFragment = PrFragment()
@@ -88,7 +88,8 @@ class PrListFragment : Fragment() {
             }
         }
 
-        private fun loadImage(imageView: ImageView, userId: String, imageNames: List<String?>) {
+        private fun loadImage(imageView: ImageView, userId: String,
+                              imageNames: List<String?>, thumbnailUri: String) {
             val storageReference = FirebaseStorage.getInstance().reference
 
             if (imageNames[0] != null)
@@ -98,7 +99,7 @@ class PrListFragment : Fragment() {
                         if (task.isSuccessful) {
                             Glide.with(imageView.context)
                                 .load(task.result)
-                                .error(R.drawable.ic_chat_64dp)
+                                .error(R.drawable.ic_sentiment_dissatisfied_grey_24dp)
                                 .transition(DrawableTransitionOptions.withCrossFade())
                                 .transform(CenterCrop(), RoundedCorners(16))
                                 .into(imageView)
@@ -106,6 +107,15 @@ class PrListFragment : Fragment() {
                             println("$TAG: ${task.exception}")
                         }
                     }
+            else if (thumbnailUri.isNotBlank())
+                Glide.with(imageView.context)
+                    .load(thumbnailUri)
+                    .error(R.drawable.ic_sentiment_dissatisfied_grey_24dp)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .transform(CenterCrop(), RoundedCorners(16))
+                    .into(imageView)
+            else
+                imageView.visibility = View.GONE
         }
 
         fun insert(pr: PrModel) {

@@ -19,6 +19,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PROFILE_IMAGES
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.REQUEST_CODE_GALLERY
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments.SelectVideoSourceDialogFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PartnerModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast

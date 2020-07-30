@@ -26,17 +26,18 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.YouTubeVideosFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChannelModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.services.CheckUrlJobIntentService
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import kotlinx.android.synthetic.main.activity_youtube_channels.*
 import kotlinx.android.synthetic.main.item_view_channel.view.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import okhttp3.*
 import java.io.IOException
 import java.lang.Exception
@@ -202,21 +203,33 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                 val map: Map<*, *>? =
                     Gson().fromJson(response.body?.string(), Map::class.java)
                 val items = map?.get("items") as ArrayList<*>
-                val dd = items[0] as LinkedTreeMap<*, *>
-                //println("DODODODODODODODO: $dd")
-                val ddo = dd["id"]
-                //println("YYYYYYYYYYYYYY: $ddo") // 출력됫음.
                 val channelId = (items[0] as LinkedTreeMap<*, *>)["id"] as String
-                println("YYYYYYYYYYYYYY: $ddo")
+
                 channelsRecyclerViewAdapter.insert(channelId)
+                updateChannelId(channelId)
             } catch (e: Exception) {
                 showToast(this, "채널을 읽어오는데 실패했습니다. (1)")
-                println("$TAG: MALMALMAL ${e.message}")
+                println("$TAG: ${e.message}")
             }
         } else {
             showToast(this, "채널을 읽어오는데 실패했습니다. (2)")
             println("$TAG: failed to get response")
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun updateChannelId(channelId: String) {
+        user.channelIds.add(channelId)
+        FirebaseFirestore.getInstance().collection(COLLECTION_USERS).document(user.id)
+            .update(hashMapOf(UserModel.KEY_CHANNEL_IDS to user.channelIds) as HashMap<String, Any>)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    MainActivity.currentUser!!.registeredOnPartners = true
+                    println("$TAG: \"channelIds\" updated")
+                }
+                else
+                    println("$TAG: ${task.exception}")
+            }
     }
 
     inner class ChannelsRecyclerViewAdapter(channelIds: MutableList<String>) : RecyclerView.Adapter<ChannelsRecyclerViewAdapter.ViewHolder>() {
@@ -225,11 +238,11 @@ class YouTubeChannelsActivity : AppCompatActivity() {
 
         init {
             for (channelId in channelIds) {
-                getChannelById(channelId)
+                insertChannelById(channelId)
             }
         }
 
-        private fun getChannelById(channelId: String): ChannelModel? {
+        private fun insertChannelById(channelId: String) {
             val url = "https://www.googleapis.com/youtube/v3/channels?key=${getString(R.string.google_api_key)}&" +
                     "part=snippet,statistics&id=$channelId"
             val request = Request.Builder()
@@ -238,30 +251,40 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                 .build()
 
             val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
-
-            if (response.isSuccessful) {
-                try {
-                    val map: Map<*, *>? =
-                        Gson().fromJson(response.body?.string(), Map::class.java)
-                    val items = map?.get("items") as ArrayList<*>
-                    val snippet = (items[0] as LinkedTreeMap<*, *>)["snippet"] as LinkedTreeMap<*, *>
-                    val title = snippet["title"] as String
-                    val description = snippet["description"] as String
-                    val thumbnailUri = ((snippet["thumbnails"]
-                            as LinkedTreeMap<*, *>)["default"]
-                            as LinkedTreeMap<*, *>)["url"] as String
-                    return ChannelModel(description, thumbnailUri, title)
-                } catch (e: Exception) {
-                    showToast(this@YouTubeChannelsActivity, "채널을 읽어오는데 실패했습니다. (3)")
-                    println("$TAG KINSTONE: ${e.message}")
-                    return null
+            okHttpClient.newCall(request).enqueue(object: Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    showToast(this@YouTubeChannelsActivity, "비디오를 읽어오는데 실패했습니다.")
+                    println("$TAG: failed to get video")
                 }
-            } else {
-                showToast(this@YouTubeChannelsActivity, "채널을 읽어오는데 실패했습니다. (4)")
-                println("$TAG: failed to get channel")
-                return null
-            }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        try {
+                            val map: Map<*, *>? =
+                                Gson().fromJson(response.body?.string(), Map::class.java)
+                            val items = map?.get("items") as ArrayList<*>
+                            val snippet =
+                                (items[0] as LinkedTreeMap<*, *>)["snippet"] as LinkedTreeMap<*, *>
+                            val title = snippet["title"] as String
+                            val description = snippet["description"] as String
+                            val thumbnailUri = ((snippet["thumbnails"]
+                                    as LinkedTreeMap<*, *>)["default"]
+                                    as LinkedTreeMap<*, *>)["url"] as String
+                            channels.add(0, ChannelModel(channelId, description, thumbnailUri, title))
+                            CoroutineScope(Dispatchers.Main).launch {
+                                notifyItemInserted(0)
+                            }
+                        } catch (e: Exception) {
+                            showToast(this@YouTubeChannelsActivity, "채널을 읽어오는데 실패했습니다. (3)")
+                            println("$TAG KINSTONE: ${e.message}")
+                        }
+                    } else {
+                        showToast(this@YouTubeChannelsActivity, "비디오를 읽어오는데 실패했습니다. (4)")
+                        println("$TAG: failed to get video")
+                    }
+                }
+
+            })
         }
 
         inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
@@ -286,6 +309,22 @@ class YouTubeChannelsActivity : AppCompatActivity() {
             holder.view.text_view_title.text = channel.title
             holder.view.text_view_description
             loadImage(holder.view.image_view, channel.thumbnailUri)
+
+            holder.view.setOnClickListener {
+                startVideosFragment(channel.id)
+            }
+        }
+
+        private fun startVideosFragment(channelId: String) {
+            supportFragmentManager.beginTransaction()
+                .addToBackStack(null)
+                .setCustomAnimations(
+                    R.anim.anim_slide_in_left,
+                    R.anim.anim_slide_out_left,
+                    R.anim.anim_slide_in_right,
+                    R.anim.anim_slide_out_right
+                ).replace(R.id.linear_layout_activity_youtube_channels,
+                    YouTubeVideosFragment(channelId), YOUTUBE_VIDEOS_FRAGMENT_TAG).commit()
         }
 
         private fun loadImage(imageView: ImageView, imageUri: String) {
@@ -293,7 +332,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                 .load(imageUri)
                 .error(R.drawable.ic_sentiment_dissatisfied_grey_24dp)
                 .transition(DrawableTransitionOptions.withCrossFade())
-                .transform(CenterCrop(), RoundedCorners(16))
+                .transform(CenterCrop())
                 .into(imageView)
         }
 
@@ -307,7 +346,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         }
 
         fun insert(channelId: String) {
-            insert(getChannelById(channelId))
+            insertChannelById(channelId)
         }
 
         fun update(pr: ChannelModel) {
@@ -324,6 +363,8 @@ class YouTubeChannelsActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "YouTubeChannelsActivity"
+
+        const val YOUTUBE_VIDEOS_FRAGMENT_TAG = "youtube_videos_fragment_tag"
 
         private const val ACTION_NEW_INTENT = "action_new_intent"
         private const val KEY_AUTHORIZATION_CODE = "key_authorization_code"

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
+
+        <TextView
+            android:id="@+id/text_view_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textSize="20sp"/>
+
+        <Button
+            android:id="@+id/button_first"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_margin="2dp"
+            android:gravity="start|center_vertical"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:drawablePadding="8dp"/>
+
+        <Button
+            android:id="@+id/button_second"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_margin="2dp"
+            android:gravity="start|center_vertical"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:drawablePadding="8dp"/>
+
+        <Button
+            android:id="@+id/button_third"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_margin="2dp"
+            android:gravity="start|center_vertical"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:drawablePadding="8dp"/>
+
+    </LinearLayout>
+
+</FrameLayout>

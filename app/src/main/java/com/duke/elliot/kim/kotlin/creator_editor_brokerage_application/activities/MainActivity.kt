@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     val homeFragment = HomeFragment()
     val partnersFragment = PartnersFragment()
     val prListFragment = PrListFragment()
+    val writingFragment = WritingFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

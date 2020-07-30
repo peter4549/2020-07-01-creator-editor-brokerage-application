@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.WritingFragment">
 
     <ScrollView
@@ -14,17 +15,29 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"/>
+
             <EditText
                 android:id="@+id/edit_text_title"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:textColor="@android:color/black"/>
+                android:padding="8dp"
+                android:textColor="@android:color/black"
+                android:autofillHints="title"
+                android:hint="@string/title"/>
 
             <EditText
-                android:id="@+id/edit_text_content"
+                android:id="@+id/edit_text_description"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:textColor="@android:color/black"/>
+                android:layout_height="120dp"
+                android:gravity="top"
+                android:padding="8dp"
+                android:textColor="@android:color/black"
+                android:autofillHints="description"
+                android:hint="@string/description"/>
 
             <EditText
                 android:id="@+id/edit_text_occupation"
@@ -32,42 +45,68 @@
                 android:layout_height="40dp"
                 android:textColor="@android:color/black"/>
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:text="@string/categories_selection"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Spinner
+                    android:id="@+id/spinner_categories_1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_margin="2dp"/>
+
+                <Spinner
+                    android:id="@+id/spinner_categories_2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_margin="2dp"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:text="내 작품 등록 (0/3)"
+                android:padding="4dp"/>
+
             <LinearLayout
                 android:id="@+id/linear_layout_image_view_add"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center">
+                android:gravity="start|center_vertical">
 
                 <ImageView
                     android:id="@+id/image_view_add_1"
                     style="@style/AddImageViewTheme"
-                    android:layout_marginEnd="20dp" />
+                    android:layout_marginStart="20dp"
+                    app:srcCompat="@drawable/ic_add_to_photos_grey_128dp"/>
 
                 <ImageView
                     android:id="@+id/image_view_add_2"
                     style="@style/AddImageViewTheme"
-                    android:layout_marginEnd="20dp" />
+                    android:layout_marginStart="24dp"
+                    android:visibility="gone"
+                    app:srcCompat="@drawable/ic_add_to_photos_grey_128dp"/>
 
                 <ImageView
                     android:id="@+id/image_view_add_3"
-                    style="@style/AddImageViewTheme" />
+                    style="@style/AddImageViewTheme"
+                    android:layout_marginStart="24dp"
+                    android:visibility="gone"
+                    app:srcCompat="@drawable/ic_add_to_photos_grey_128dp"/>
 
             </LinearLayout>
-
-            <Button
-                android:id="@+id/button_upload_youtube_videos"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="유튜브 비디오 등록"
-                android:textSize="20sp"/>
-
-            <Spinner
-                android:id="@+id/spinner_categories"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
 
             <Button
                 android:id="@+id/button_upload"

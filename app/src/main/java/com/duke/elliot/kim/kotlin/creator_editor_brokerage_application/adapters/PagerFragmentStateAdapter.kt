@@ -17,7 +17,7 @@ class PagerFragmentStateAdapter(private val fragmentActivity: FragmentActivity)
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> (fragmentActivity as MainActivity).homeFragment
-            1 -> WritingFragment()
+            1 -> (fragmentActivity as MainActivity).writingFragment
             2 -> (fragmentActivity as MainActivity).chatRoomsFragment
             3 -> MyInfoFragment()
             else -> throw Exception("invalid fragment")
