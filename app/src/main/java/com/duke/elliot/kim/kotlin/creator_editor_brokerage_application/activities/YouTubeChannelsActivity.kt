@@ -22,7 +22,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
@@ -47,6 +46,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
 
     private lateinit var channelsRecyclerViewAdapter: ChannelsRecyclerViewAdapter
     private lateinit var user: UserModel
+    private var connection: CustomTabsServiceConnection? = null
 
     private val receiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -67,6 +67,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         if (intent?.action == ACTION_NEW_INTENT) {
             val code = intent.getStringExtra(KEY_AUTHORIZATION_CODE) as String
             getAccessCode(code)
+            unbindCustomTabsService()
         }
     }
 
@@ -82,7 +83,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         }
 
         frame_layout_add_channel.setOnClickListener {
-            openCustomTabs()
+            bindCustomTabsService()
         }
 
         channelsRecyclerViewAdapter = ChannelsRecyclerViewAdapter(user.channelIds)
@@ -102,11 +103,15 @@ class YouTubeChannelsActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
+        unbindCustomTabsService()
         super.onDestroy()
     }
 
-    private fun openCustomTabs() {
-        val connection = object : CustomTabsServiceConnection() { // 서비스 쓰면 안될지도..
+    private fun bindCustomTabsService() {
+        if (connection != null)
+            return
+
+        connection = object : CustomTabsServiceConnection() {
             override fun onCustomTabsServiceConnected(
                 name: ComponentName,
                 client: CustomTabsClient
@@ -132,11 +137,20 @@ class YouTubeChannelsActivity : AppCompatActivity() {
             }
         }
 
-        if (CustomTabsClient.bindCustomTabsService(this, CUSTOM_TAB_PACKAGE_NAME, connection))
+        if (CustomTabsClient.bindCustomTabsService(this, CUSTOM_TAB_PACKAGE_NAME, connection!!))
             println("$TAG: custom tabs service connected")
         else {
-            showToast(this, "연결에 실패했습니다.")
+            showToast(this, "인증서버 연결에 실패했습니다.")
             println("$TAG: failed to connect custom tabs service")
+        }
+    }
+
+    private fun unbindCustomTabsService() {
+        if (connection == null)
+            return
+        else {
+            this.unbindCustomTabsService()
+            connection = null
         }
     }
 

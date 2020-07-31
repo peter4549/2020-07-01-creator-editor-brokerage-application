@@ -13,11 +13,11 @@
     <string name="too_many_requests">너무 많은 요청으로 인증요청이 차단되었습니다.\n잠시 후 다시 시도해주십시오.</string>
     <string name="verification_failed">인증에 실패했습니다.</string>
 
-    <!-- chat -->
+    <!-- Chat -->
     <string name="chat_message_sending_failure_message">메시지 전송에 실패했습니다.</string>
     <string name="chat_room_creation_failure_message">채팅방 생성에 실패했습니다.</string>
     <string name="chat_room_creation_success_message">채팅방이 생성되었습니다.</string>
-    <string name="failed_to_find_chat_room_message">채팅방을 찾지 못했습니다.</string>
+    <string name="chat_room_not_found">채팅방을 찾지 못했습니다.</string>
     <string name="failed_to_find_publisher">퍼블리셔를 찾을 수 없습니다.</string>
     <string name="start_chatting">채팅을 시작합니다.</string>
 
@@ -32,7 +32,7 @@
     <string name="request_password_message">비밀번호를 입력해주세요.</string>
     <string name="sign_in">가입하기</string>
     <string name="sign_in_failure_message">로그인에 실패했습니다.</string>
-    <string name="sign_in_and_profile_creation_request_message">로그인 및 프로필 작성 후에 서비스를 이용하실 수 있습니다.</string>
+    <string name="request_sign_in_and_profile_creation">로그인 및 프로필 작성 후에 서비스를 이용하실 수 있습니다.</string>
     <string name="sign_in_message">로그인 되었습니다.</string>
     <string name="sign_out_message">로그아웃 되었습니다.</string>
     <string name="sign_up_message">회원가입이 완료되었습니다.</string>
@@ -40,8 +40,8 @@
     <string name="start_with_facebook">페이스북으로 시작하기</string>
     <string name="start_with_google">구글로 시작하기</string>
 
-    <!-- permission -->
-    <string name="sms_receive_permission_request_message">SMS 수신권한을 승인하셔야 본인인증을 진행하실 수 있습니다.</string>
+    <!-- Permissions -->
+    <string name="request_sms_receive_permission">SMS 수신권한을 승인하셔야 본인인증을 진행하실 수 있습니다.</string>
 
     <!-- content categories -->
     <string name="category_car">자동차</string>
@@ -67,7 +67,7 @@
     <string name="already_verified">이미 인증하셨습니다.</string>
     <string name="image_upload_failed">이미지 업로드에 실패했습니다.</string>
     <string name="profile_creation">프로필 작성</string>
-    <string name="profile_creation_request_message">프로필 작성 후에 서비스를 이용하실 수 있습니다.</string>
+    <string name="request_profile_creation">프로필 작성 후에 서비스를 이용하실 수 있습니다.</string>
     <string name="profile_set">프로필을 등록했습니다.</string>
     <string name="profile_set_failed">프로필 등록에 실패했습니다.</string>
     <string name="profile_updated">프로필을 업데이트했습니다.</string>
@@ -79,11 +79,11 @@
     <string name="request_class_selection">클래스를 선택해주세요.</string>
 
     <!-- token -->
-    <string name="token_generation_failure_message">토큰 생성에 실패했습니다.</string>
-    <string name="token_storage_failure_message">토큰 저장에 실패했습니다.</string>
+    <string name="token_generation_failed">토큰 생성에 실패했습니다.</string>
+    <string name="token_storage_failed">토큰 저장에 실패했습니다.</string>
 
     <!-- data -->
-    <string name="data_read_failed_message">데이터를 읽어올 수 없습니다.</string>
+    <string name="data_read_failed">데이터를 읽어오는데 실패했습니다.</string>
 
     <!-- navigation drawer -->
     <string name="my_stars">나의 별</string>

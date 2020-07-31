@@ -312,7 +312,7 @@ class MyInfoFragment : Fragment() {
                             }
                     }
                 } else {
-                    showToast(requireContext(), getString(R.string.token_generation_failure_message))
+                    showToast(requireContext(), getString(R.string.token_generation_failed))
                     println("$TAG: token generation failed")
                 }
             }

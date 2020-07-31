@@ -24,6 +24,7 @@ class CheckUrlJobIntentService: Service() {
         val intent = Intent(ACTION_CORRECT_URL)
         intent.putExtra(KEY_AUTHORIZATION_CODE, code)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        stopSelf()
     }
 
     companion object {

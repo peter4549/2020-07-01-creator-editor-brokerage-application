@@ -30,6 +30,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.storage.StorageException
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_my_info_drawer.*
 
@@ -82,13 +83,11 @@ class MainActivity : AppCompatActivity() {
             when (intent.action) {
                 FirebaseMessagingService.ACTION_CHAT_NOTIFICATION -> {
                     val chatRoomId = intent.getStringExtra(FirebaseMessagingService.KEY_CHAT_ROOM_ID)
-
                     if (chatRoomId != null)
                         enterChatRoom(chatRoomId)
-                    else {
-                        showToast(this, getString(R.string.failed_to_find_chat_room_message))
-                        println("$TAG: chat room not found")
-                    }
+                    else
+                        ErrorHandler.errorHandling(this, TAG,
+                            Throwable(), null, getString(R.string.chat_room_not_found))
                 }
             }
         }
@@ -96,16 +95,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun enterChatRoom(chatRoomId: String) {
         FirebaseFirestore.getInstance()
-            .collection(COLLECTION_CHAT)
+            .collection(COLLECTION_CHAT + "ace")  // error test
             .document(chatRoomId)
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val chatRoom = ChatRoomModel(task.result?.data)
                     startFragment(ChatFragment(chatRoom), R.id.relative_layout_activity_main, CHAT_FRAGMENT_TAG)
-                } else {
-                    showToast(this, getString(R.string.failed_to_find_chat_room_message))
-                    println("$TAG: ${task.exception}")
-                }
+                } else
+                    ErrorHandler.errorHandling(this, TAG,
+                        Throwable(), task.exception as StorageException, getString(R.string.chat_room_not_found))
             }
     }
 
@@ -120,10 +118,10 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == PERMISSIONS_REQUEST_CODE) {
             if (PackageManager.PERMISSION_GRANTED == grantResults.firstOrNull()) {
                 if (hasReceiveSMSPermissions(this))
-                    println("$TAG: SMS receive permission granted.")
+                    println("$TAG: sms receive permission granted")
             } else {
                 if (!hasReceiveSMSPermissions(this))
-                    showToast(this, getString(R.string.sms_receive_permission_request_message))
+                    showToast(this, getString(R.string.request_sms_receive_permission))
             }
         }
     }
@@ -154,9 +152,7 @@ class MainActivity : AppCompatActivity() {
                     else -> view_pager.currentItem = view_pager.currentItem - 1
                 }
             }
-            else -> {
-                view_pager.currentItem = view_pager.currentItem - 1
-            }
+            else -> view_pager.currentItem = view_pager.currentItem - 1
         }
     }
 
@@ -303,8 +299,7 @@ class MainActivity : AppCompatActivity() {
 
     fun requestSignIn() {
         val builder = AlertDialog.Builder(this)
-        //builder.setTitle("로그인 요청")
-        builder.setMessage(getString(R.string.sign_in_and_profile_creation_request_message))
+        builder.setMessage(getString(R.string.request_sign_in_and_profile_creation))
         builder.setPositiveButton(getString(R.string.login)) { _, _ ->
                 startFragment(LoginFragment(), R.id.relative_layout_activity_main, LOGIN_FRAGMENT_TAG)
         }.setNegativeButton(getString(R.string.cancel)) { _, _ -> }
@@ -313,7 +308,7 @@ class MainActivity : AppCompatActivity() {
 
     fun requestProfileCreation() {
         val builder = AlertDialog.Builder(this)
-        builder.setMessage(getString(R.string.profile_creation_request_message))
+        builder.setMessage(getString(R.string.request_profile_creation))
         builder.setPositiveButton(getString(R.string.profile_creation)) { _, _ -> tab_layout.getTabAt(myInfoTabIndex)?.select() }
             .create().show()
     }
@@ -325,14 +320,16 @@ class MainActivity : AppCompatActivity() {
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     if (task.result != null)
-                        if (task.result!!.data == null)
+                        if (task.result?.data == null)
                             requestProfileCreation()
                         else
-                            setCurrentUser(task.result!!.data as Map<String, Any>)
-                } else {
-                    showToast(this, getString(R.string.data_read_failed_message))
-                    println("$TAG: ${task.exception}")
-                }
+                            setCurrentUser(task.result?.data as Map<String, Any>)
+                    else
+                        ErrorHandler.errorHandling(this, TAG,
+                            Throwable(), null, getString(R.string.data_read_failed))
+                } else
+                    ErrorHandler.errorHandling(this, TAG,
+                        Throwable(), task.exception as StorageException, getString(R.string.data_read_failed))
             }
     }
 
@@ -357,7 +354,6 @@ class MainActivity : AppCompatActivity() {
                     )
 
                     currentUser?.pushToken = pushToken
-                    println("${MyInfoFragment.TAG}: token generated")
 
                     FirebaseFirestore.getInstance()
                         .collection(COLLECTION_USERS)
@@ -365,17 +361,16 @@ class MainActivity : AppCompatActivity() {
                         .update(map).addOnCompleteListener { updateTask ->
                             if (updateTask.isSuccessful)
                                 println("$TAG: token updated")
-                            else {
-                                showToast(this, getString(R.string.token_storage_failure_message))
-                                println("$TAG: ${task.exception}")
-                            }
+                            else
+                                ErrorHandler.errorHandling(this, TAG,
+                                    Throwable(), task.exception as StorageException, getString(R.string.token_storage_failed))
                         }
                 } else
-                    showToast(this, getString(R.string.token_generation_failure_message))
-            } else {
-                showToast(this, getString(R.string.token_generation_failure_message))
-                println("$TAG: token generation failed")
-            }
+                    ErrorHandler.errorHandling(this, TAG,
+                        Throwable(), null, getString(R.string.token_generation_failed))
+            } else
+                ErrorHandler.errorHandling(this, TAG,
+                    Throwable(), task.exception, getString(R.string.token_generation_failed))
         }
     }
 
