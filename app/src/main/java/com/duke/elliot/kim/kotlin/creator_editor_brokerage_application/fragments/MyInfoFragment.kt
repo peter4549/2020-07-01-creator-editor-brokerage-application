@@ -1,12 +1,16 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.BaseAdapter
+import android.widget.TextView
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
@@ -19,7 +23,6 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_PROFILE_IMAGES
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.REQUEST_CODE_GALLERY
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments.SelectVideoSourceDialogFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PartnerModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
@@ -41,6 +44,8 @@ import kotlin.collections.HashMap
 
 class MyInfoFragment : Fragment() {
 
+    private lateinit var classes: ArrayList<String>
+    private lateinit var selectedOccupation: String
     private val firebaseAuth = FirebaseAuth.getInstance()
     private var googleSignInClient: GoogleSignInClient? = null
     private var profileImageFileDownloadUri: Uri? = null
@@ -50,10 +55,17 @@ class MyInfoFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        classes = arrayListOf(
+            "-",
+            getString(R.string.creator),
+            getString(R.string.editor)
+        )
+
         val view = inflater.inflate(R.layout.fragment_my_info_drawer, container, false)
 
-        (requireActivity() as MainActivity).setSupportActionBar(view.toolbar)
-        (requireActivity() as MainActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
+        (activity as MainActivity).setSupportActionBar(view.toolbar)
+        (activity as MainActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
 
         if (MainActivity.currentUser != null) {
             if (MainActivity.currentUser!!.profileImageFileDownloadUri.isNotBlank())
@@ -91,6 +103,17 @@ class MyInfoFragment : Fragment() {
 
         text_view_sign_out.setOnClickListener {
             signOut()
+        }
+
+        spinner_occupation.adapter = SpinnerAdapter()
+        spinner_occupation.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(p0: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                selectedOccupation = classes[position]
+            }
         }
 
         // for test
@@ -199,6 +222,11 @@ class MyInfoFragment : Fragment() {
             return@runBlocking
         }
 
+        if (selectedOccupation == "-") {
+            showToast(requireContext(), getString(R.string.request_class_selection))
+            return@runBlocking
+        }
+
         if (profileImageFileUri != null) {
 
 
@@ -240,6 +268,7 @@ class MyInfoFragment : Fragment() {
             user.channelIds = MainActivity.currentUser?.channelIds ?: mutableListOf()
             user.id = firebaseAuth.currentUser?.uid.toString()
             user.name = edit_text_name.text.toString()
+            user.occupation = selectedOccupation!!
             user.phoneNumber = edit_text_phone_number.text.toString()
             user.pr = (edit_text_pr.text ?: "").toString()
             user.profileImageFileDownloadUri = profileImageFileDownloadUri.toString()
@@ -363,6 +392,45 @@ class MyInfoFragment : Fragment() {
         FirebaseAuth.getInstance().signOut()
         googleSignInClient?.signOut()
         LoginManager.getInstance().logOut()
+    }
+
+    inner class SpinnerAdapter: BaseAdapter() {
+
+        private val inflater =
+            (activity as MainActivity).getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val holder: ViewHolder
+
+            if (convertView == null) {
+                val view = inflater.inflate(R.layout.item_view_spinner, parent, false)
+                holder = ViewHolder()
+                holder.textView = view.findViewById(R.id.text_view_spinner)
+                holder.textView.tag = holder
+            } else
+                holder = convertView.tag as ViewHolder
+
+            holder.textView.text = classes[position]
+
+            return holder.textView
+        }
+
+        override fun getItem(position: Int): Any {
+            return classes[position]
+        }
+
+        // Unused
+        override fun getItemId(position: Int): Long {
+            return 0L
+        }
+
+        override fun getCount(): Int {
+            return classes.count()
+        }
+
+        inner class ViewHolder {
+            lateinit var textView: TextView
+        }
     }
 
     companion object {

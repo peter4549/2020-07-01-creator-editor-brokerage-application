@@ -27,6 +27,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments.PlaylistsDialogFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments.YouTubeVideosFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChannelModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
@@ -145,13 +146,13 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         val toast = Toast(this)
         toast.setGravity(Gravity.CENTER, 0, 0)
         toast.duration = Toast.LENGTH_LONG
-        toast.view = view
+        //toast.view = view
         toast.show()
     }
 
     private fun createPendingIntent() : PendingIntent {
         val intent = Intent(this, CheckUrlJobIntentService::class.java)
-       return PendingIntent.getService(this, 0, intent, 0)
+        return PendingIntent.getService(this, 0, intent, 0)
     }
 
     private fun getAccessCode(code: String) {
@@ -232,17 +233,85 @@ class YouTubeChannelsActivity : AppCompatActivity() {
             }
     }
 
+    fun startVideosFragment(sourceId: String, allVideos: Boolean, playlistTitle: String? = null) {
+        supportFragmentManager.beginTransaction()
+            .addToBackStack(null)
+            .setCustomAnimations(
+                R.anim.anim_slide_in_left,
+                R.anim.anim_slide_out_left,
+                R.anim.anim_slide_in_right,
+                R.anim.anim_slide_out_right
+            ).replace(R.id.linear_layout_activity_youtube_channels,
+                YouTubeVideosFragment(sourceId, allVideos, playlistTitle), YOUTUBE_VIDEOS_FRAGMENT_TAG).commit()
+    }
+
     inner class ChannelsRecyclerViewAdapter(channelIds: MutableList<String>) : RecyclerView.Adapter<ChannelsRecyclerViewAdapter.ViewHolder>() {
 
         private val channels = mutableListOf<ChannelModel>()
 
         init {
-            for (channelId in channelIds) {
-                insertChannelById(channelId)
-            }
+            insertChannelsByIds(channelIds)
+        }
+
+        private fun insertChannelsByIds(channelIds: MutableList<String>) {
+            val url = "https://www.googleapis.com/youtube/v3/channels?key=${getString(R.string.google_api_key)}&" +
+                    "part=snippet,statistics&id=${channelIds.joinToString(separator = ",")}"
+            val request = Request.Builder()
+                .url(url)
+                .get()
+                .build()
+
+            val okHttpClient = OkHttpClient()
+            okHttpClient.newCall(request).enqueue(object: Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    showToast(this@YouTubeChannelsActivity, "비디오를 읽어오는데 실패했습니다.")
+                    println("$TAG: failed to get video")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        try {
+                            val map: Map<*, *>? =
+                                Gson().fromJson(response.body?.string(), Map::class.java)
+                            val items = map?.get("items") as ArrayList<*>
+
+                            for (item in items) {
+                                val id = (item as LinkedTreeMap<*, *>)["id"] as String
+                                val snippet =
+                                    item["snippet"] as LinkedTreeMap<*, *>
+                                val title = snippet["title"] as String
+                                val description = snippet["description"] as String
+                                val thumbnailUri = ((snippet["thumbnails"]
+                                        as LinkedTreeMap<*, *>)["default"]
+                                        as LinkedTreeMap<*, *>)["url"] as String
+                                channels.add(
+                                    0,
+                                    ChannelModel(id, description, thumbnailUri, title)
+                                )
+
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    notifyItemInserted(0)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            showToast(this@YouTubeChannelsActivity, "채널을 읽어오는데 실패했습니다. (3)")
+                            println("$TAG KINSTONE: ${e.message}")
+                        }
+                    } else {
+                        showToast(this@YouTubeChannelsActivity, "비디오를 읽어오는데 실패했습니다. (4)")
+                        println("$TAG: failed to get video")
+                    }
+                }
+
+            })
         }
 
         private fun insertChannelById(channelId: String) {
+            if (channelId in user.channelIds) {
+                showToast(this@YouTubeChannelsActivity, "이미 등록된 채널입니다.")
+                return
+            }
+
             val url = "https://www.googleapis.com/youtube/v3/channels?key=${getString(R.string.google_api_key)}&" +
                     "part=snippet,statistics&id=$channelId"
             val request = Request.Builder()
@@ -262,15 +331,16 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                         try {
                             val map: Map<*, *>? =
                                 Gson().fromJson(response.body?.string(), Map::class.java)
-                            val items = map?.get("items") as ArrayList<*>
-                            val snippet =
-                                (items[0] as LinkedTreeMap<*, *>)["snippet"] as LinkedTreeMap<*, *>
+                            val snippet = ((map?.get("items") as ArrayList<*>)[0]
+                                    as LinkedTreeMap<*, *>)["snippet"] as LinkedTreeMap<*, *>
                             val title = snippet["title"] as String
                             val description = snippet["description"] as String
                             val thumbnailUri = ((snippet["thumbnails"]
                                     as LinkedTreeMap<*, *>)["default"]
                                     as LinkedTreeMap<*, *>)["url"] as String
+
                             channels.add(0, ChannelModel(channelId, description, thumbnailUri, title))
+
                             CoroutineScope(Dispatchers.Main).launch {
                                 notifyItemInserted(0)
                             }
@@ -311,20 +381,12 @@ class YouTubeChannelsActivity : AppCompatActivity() {
             loadImage(holder.view.image_view, channel.thumbnailUri)
 
             holder.view.setOnClickListener {
-                startVideosFragment(channel.id)
+                PlaylistsDialogFragment(channel.id).show(this@YouTubeChannelsActivity.supportFragmentManager, TAG)
             }
         }
 
-        private fun startVideosFragment(channelId: String) {
-            supportFragmentManager.beginTransaction()
-                .addToBackStack(null)
-                .setCustomAnimations(
-                    R.anim.anim_slide_in_left,
-                    R.anim.anim_slide_out_left,
-                    R.anim.anim_slide_in_right,
-                    R.anim.anim_slide_out_right
-                ).replace(R.id.linear_layout_activity_youtube_channels,
-                    YouTubeVideosFragment(channelId), YOUTUBE_VIDEOS_FRAGMENT_TAG).commit()
+        private fun startPlaylistsFragment() {
+
         }
 
         private fun loadImage(imageView: ImageView, imageUri: String) {
@@ -375,7 +437,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         private const val REDIRECT_URI = "urn:ietf:wg:oauth:2.0:oob"
         private const val RESPONSE_TYPE = "code"
         private const val SCOPE = "https://www.googleapis.com/auth/youtube"
-       // private const val YOUTUBE_SCOPE = "oauth2:https://www.googleapis.com/auth/youtube"
+        // private const val YOUTUBE_SCOPE = "oauth2:https://www.googleapis.com/auth/youtube"
 
         const val GOOGLE_AUTHORIZATION_SERVER_URI = "https://accounts.google.com/o/oauth2/auth?" +
                 "client_id=$CLIENT_ID&" +

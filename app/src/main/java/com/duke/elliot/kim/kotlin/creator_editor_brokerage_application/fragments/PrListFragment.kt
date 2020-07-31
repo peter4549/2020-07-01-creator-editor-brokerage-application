@@ -92,8 +92,8 @@ class PrListFragment : Fragment() {
                               imageNames: List<String?>, thumbnailUri: String) {
             val storageReference = FirebaseStorage.getInstance().reference
 
-            if (imageNames[0] != null)
-                storageReference.child(COLLECTION_IMAGES)
+            when {
+                imageNames[0] != null -> storageReference.child(COLLECTION_IMAGES)
                     .child(userId).child(imageNames[0]!!).downloadUrl
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
@@ -107,15 +107,14 @@ class PrListFragment : Fragment() {
                             println("$TAG: ${task.exception}")
                         }
                     }
-            else if (thumbnailUri.isNotBlank())
-                Glide.with(imageView.context)
+                thumbnailUri.isNotBlank() -> Glide.with(imageView.context)
                     .load(thumbnailUri)
                     .error(R.drawable.ic_sentiment_dissatisfied_grey_24dp)
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .transform(CenterCrop(), RoundedCorners(16))
                     .into(imageView)
-            else
-                imageView.visibility = View.GONE
+                else -> imageView.visibility = View.GONE
+            }
         }
 
         fun insert(pr: PrModel) {

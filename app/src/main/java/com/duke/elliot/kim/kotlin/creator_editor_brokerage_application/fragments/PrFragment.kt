@@ -17,6 +17,7 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_pr.*
+import kotlinx.android.synthetic.main.fragment_pr.view.*
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,18 +40,22 @@ class PrFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        val view = inflater.inflate(R.layout.fragment_pr, container, false)
+
+        view.text_view_public_name.text = pr.publisherName
+
         fabOpenAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.anim_fab_open)
         fabCloseAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.anim_fab_close)
         fabRotateForwardAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.anim_rotate_forward)
         fabRotateBackwardAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.anim_rotate_backward)
 
-        return inflater.inflate(R.layout.fragment_pr, container, false)
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        text_view_name.text = pr.title
+        text_view_public_name.text = pr.title
 
         if (pr.publisherId == FirebaseAuth.getInstance().currentUser?.uid) {
             disableFab()

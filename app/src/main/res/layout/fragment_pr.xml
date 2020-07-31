@@ -15,16 +15,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"/>
+
         <LinearLayout
             android:id="@+id/linear_layout_header"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/toolbar"
             android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/image_view_profile"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:layout_gravity="center_vertical"/>
 
             <LinearLayout
@@ -36,12 +42,17 @@
                 <TextView
                     android:id="@+id/text_view_public_name"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp" />
+                    android:layout_height="wrap_content" />
 
                 <TextView
-                    android:id="@+id/text_view_name"
+                    android:id="@+id/text_view_occupation"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp" />
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/text_view_categories"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
             </LinearLayout>
 
