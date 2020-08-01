@@ -268,7 +268,7 @@ class MyInfoFragment : Fragment() {
             user.channelIds = MainActivity.currentUser?.channelIds ?: mutableListOf()
             user.id = firebaseAuth.currentUser?.uid.toString()
             user.name = edit_text_name.text.toString()
-            user.occupation = selectedOccupation!!
+            user.occupation = selectedOccupation
             user.phoneNumber = edit_text_phone_number.text.toString()
             user.pr = (edit_text_pr.text ?: "").toString()
             user.profileImageFileDownloadUri = profileImageFileDownloadUri.toString()

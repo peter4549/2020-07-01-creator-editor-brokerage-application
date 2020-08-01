@@ -33,6 +33,7 @@ import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.storage.StorageException
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_my_info_drawer.*
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
 
@@ -87,7 +88,7 @@ class MainActivity : AppCompatActivity() {
                         enterChatRoom(chatRoomId)
                     else
                         ErrorHandler.errorHandling(this, TAG,
-                            Throwable(), null, getString(R.string.chat_room_not_found))
+                            Throwable(), Exception("chat room not found"), getString(R.string.chat_room_not_found))
                 }
             }
         }
@@ -95,7 +96,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun enterChatRoom(chatRoomId: String) {
         FirebaseFirestore.getInstance()
-            .collection(COLLECTION_CHAT + "ace")  // error test
+            .collection(COLLECTION_CHAT)
             .document(chatRoomId)
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -326,7 +327,7 @@ class MainActivity : AppCompatActivity() {
                             setCurrentUser(task.result?.data as Map<String, Any>)
                     else
                         ErrorHandler.errorHandling(this, TAG,
-                            Throwable(), null, getString(R.string.data_read_failed))
+                            Throwable(), Exception("data read failed"), getString(R.string.data_read_failed))
                 } else
                     ErrorHandler.errorHandling(this, TAG,
                         Throwable(), task.exception as StorageException, getString(R.string.data_read_failed))
@@ -367,7 +368,7 @@ class MainActivity : AppCompatActivity() {
                         }
                 } else
                     ErrorHandler.errorHandling(this, TAG,
-                        Throwable(), null, getString(R.string.token_generation_failed))
+                        Throwable(), Exception("token generation failed"), getString(R.string.token_generation_failed))
             } else
                 ErrorHandler.errorHandling(this, TAG,
                     Throwable(), task.exception, getString(R.string.token_generation_failed))

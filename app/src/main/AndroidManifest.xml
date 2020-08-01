@@ -37,7 +37,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.YouTubeChannelsActivity"
+            android:name=".youtube.YouTubeChannelsActivity"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -96,7 +96,7 @@
             </intent-filter>
             -->
         </receiver>
-        <receiver android:name=".broadcast_receiver.CustomTabsReceiver" />
+        <receiver android:name=".youtube.CustomTabsReceiver" />
 
         <service
             android:name=".services.FirebaseMessagingService"

@@ -1,4 +1,4 @@
-package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments
+package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube
 
 import android.app.Dialog
 import android.os.Bundle
@@ -11,8 +11,8 @@ import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.ErrorHandler
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.YouTubeChannelsActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PlaylistModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
@@ -33,21 +33,13 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
 
         dialog.setContentView(R.layout.dialog_fragment_playlists)
         dialog.findViewById<TextView>(R.id.text_view_all_videos).setOnClickListener {
-            if (channelId != null) {
-                (activity as YouTubeChannelsActivity).startVideosFragment(channelId, true)
-                dismiss()
-            } else {
-
-            }
+            (activity as YouTubeChannelsActivity).startVideosFragment(channelId!!, true)
+            dismiss()
         }
 
-        if (channelId != null) {
-            dialog.recycler_view.apply {
-                adapter = PlaylistsRecyclerViewAdapter(channelId)
-                layoutManager = LayoutManagerWrapper(requireContext(), 1)
-            }
-        } else {
-            // 에러 보고.
+        dialog.recycler_view.apply {
+            adapter = PlaylistsRecyclerViewAdapter(channelId!!)
+            layoutManager = LayoutManagerWrapper(requireContext(), 1)
         }
 
         return dialog
@@ -57,24 +49,24 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
         RecyclerView.Adapter<PlaylistsRecyclerViewAdapter.ViewHolder>() {
 
         private val playlists = mutableListOf<PlaylistModel>()
+        private val youTubeDataApi: YouTubeDataApi
 
         init {
             getPlaylistsByChannelId(channelId)
+            youTubeDataApi = (requireActivity() as YouTubeChannelsActivity).youTubeDataApi
         }
 
         private fun getPlaylistsByChannelId(channelId: String) {
-            val url = "https://www.googleapis.com/youtube/v3/playlists?key=${getString(R.string.google_api_key)}&" +
-                    "part=snippet&channelId=$channelId"
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+
+            val request = youTubeDataApi.getPlaylistsRequestByChannelId(channelId)
 
             val okHttpClient = OkHttpClient()
             okHttpClient.newCall(request).enqueue(object: Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    showToast(requireContext(), "재생목록을 불러오는데 실패했습니다.")
-                    println("$TAG: failed to get playlists") // 이런거 전부 에러 핸들러 클래스에서 처리할 것.
+                    ErrorHandler.errorHandling(requireContext(),
+                        TAG,
+                        Throwable(), e,
+                        getString(R.string.failed_to_load_playlists))
                 }
 
                 override fun onResponse(call: Call, response: Response) {
@@ -82,29 +74,27 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
                         try {
                             val map: Map<*, *>? =
                                 Gson().fromJson(response.body?.string(), Map::class.java)
-                            val items = map?.get("items") as ArrayList<*>
+                            val items = youTubeDataApi.getItemsFromMap(map!!)
                             for (item in items) {
-                                val id = (item as LinkedTreeMap<*, *>)["id"] as String
-                                val snippet =
-                                    (item as LinkedTreeMap<*, *>)["snippet"] as LinkedTreeMap<*, *>
-                                val title = snippet["title"] as String
-                                val description = snippet["description"] as String
-                                val thumbnailUri = ((snippet["thumbnails"]
-                                        as LinkedTreeMap<*, *>)["default"]
-                                        as LinkedTreeMap<*, *>)["url"] as String
-                                playlists.add(PlaylistModel(description, id, thumbnailUri, title))
+                                val playlist =
+                                    youTubeDataApi.getPlaylistByItem(item as LinkedTreeMap<*, *>)
+                                playlists.add(playlist)
                             }
 
                             CoroutineScope(Dispatchers.Main).launch {
                                 notifyDataSetChanged()
                             }
                         } catch (e: Exception) {
-                            showToast(requireContext(), "재생목록을 불러오는데 실패했습니다. (3)")
-                            println("$TAG KINSTONE: ${e.message}")
+                            ErrorHandler.errorHandling(requireContext(),
+                                TAG,
+                                Throwable(), e,
+                                getString(R.string.failed_to_load_playlists))
                         }
                     } else {
-                        showToast(requireContext(), "재생목록을 불러오는데 실패했습니다. (4)")
-                        println("$TAG: failed to get video")
+                        ErrorHandler.errorHandling(requireContext(),
+                            TAG,
+                            Throwable(), Exception("response failed"),
+                            getString(R.string.failed_to_load_playlists))
                     }
                 }
             })
@@ -115,7 +105,7 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
         override fun onCreateViewHolder(
             parent: ViewGroup,
             viewType: Int
-        ): PlaylistsRecyclerViewAdapter.ViewHolder {
+        ): ViewHolder {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_view_playlist, parent, false)
 
@@ -126,7 +116,7 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
             return playlists.size
         }
 
-        override fun onBindViewHolder(holder: PlaylistsRecyclerViewAdapter.ViewHolder, position: Int) {
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val playlist = playlists[position]
 
             holder.view.text_view_title.text = playlist.title

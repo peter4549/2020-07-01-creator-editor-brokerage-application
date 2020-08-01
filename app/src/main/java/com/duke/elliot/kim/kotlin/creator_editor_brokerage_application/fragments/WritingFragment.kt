@@ -25,12 +25,13 @@ import com.bumptech.glide.request.target.Target
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.YouTubeChannelsActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube.YouTubeChannelsActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments.SelectVideoSourceDialogFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PrModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube.YouTubeVideosFragment
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.fragment_writing.*
@@ -38,6 +39,7 @@ import kotlinx.android.synthetic.main.fragment_writing.image_view_add_1
 import kotlinx.android.synthetic.main.fragment_writing.image_view_add_2
 import kotlinx.android.synthetic.main.fragment_writing.view.*
 import kotlinx.coroutines.*
+import java.lang.IllegalStateException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -299,7 +301,7 @@ class WritingFragment : Fragment() {
     }
 
     fun openYouTubeChannels() {
-        val intent = Intent((requireActivity() as MainActivity), YouTubeChannelsActivity::class.java)
+        val intent = Intent(requireContext(), YouTubeChannelsActivity::class.java)
 
         intent.action = ACTION_FROM_WRITING_FRAGMENT
         intent.putExtra(KEY_CHANNELS, MainActivity.currentUser!!.channelIds.toTypedArray())

@@ -1,4 +1,4 @@
-package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
+package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube
 
 import android.app.Activity
 import android.content.Intent
@@ -13,9 +13,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.YouTubeChannelsActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments.PlaylistsDialogFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.VideoModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.gson.Gson
@@ -62,7 +60,11 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
         super.onViewCreated(view, savedInstanceState)
 
         frame_layout_select_playlist.setOnClickListener {
-            PlaylistsDialogFragment(sourceId).show(requireActivity().supportFragmentManager, TAG)
+            PlaylistsDialogFragment(
+                sourceId
+            ).show(requireActivity().supportFragmentManager,
+                TAG
+            )
         }
     }
 
@@ -203,7 +205,7 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
         override fun onCreateViewHolder(
             parent: ViewGroup,
             viewType: Int
-        ): VideosRecyclerViewAdapter.ViewHolder {
+        ): ViewHolder {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_view_video, parent, false)
 
@@ -214,7 +216,7 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
             return videos.size
         }
 
-        override fun onBindViewHolder(holder: VideosRecyclerViewAdapter.ViewHolder, position: Int) {
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val video = videos[position]
 
             holder.view.text_view_description.text = video.description
