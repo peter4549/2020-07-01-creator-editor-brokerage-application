@@ -301,7 +301,7 @@ class WritingFragment : Fragment() {
     }
 
     fun openYouTubeChannels() {
-        val intent = Intent(requireContext(), YouTubeChannelsActivity::class.java)
+        val intent = Intent(requireActivity(), YouTubeChannelsActivity::class.java)
 
         intent.action = ACTION_FROM_WRITING_FRAGMENT
         intent.putExtra(KEY_CHANNELS, MainActivity.currentUser!!.channelIds.toTypedArray())

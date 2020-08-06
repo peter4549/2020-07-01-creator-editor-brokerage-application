@@ -87,8 +87,8 @@ class MainActivity : AppCompatActivity() {
                     if (chatRoomId != null)
                         enterChatRoom(chatRoomId)
                     else
-                        ErrorHandler.errorHandling(this, TAG,
-                            Throwable(), Exception("chat room not found"), getString(R.string.chat_room_not_found))
+                        ErrorHandler.errorHandling(this,
+                            Exception("chat room not found"), Throwable(), getString(R.string.chat_room_not_found))
                 }
             }
         }
@@ -103,8 +103,8 @@ class MainActivity : AppCompatActivity() {
                     val chatRoom = ChatRoomModel(task.result?.data)
                     startFragment(ChatFragment(chatRoom), R.id.relative_layout_activity_main, CHAT_FRAGMENT_TAG)
                 } else
-                    ErrorHandler.errorHandling(this, TAG,
-                        Throwable(), task.exception as StorageException, getString(R.string.chat_room_not_found))
+                    ErrorHandler.errorHandling(this, task.exception as StorageException,
+                        Throwable(), getString(R.string.chat_room_not_found))
             }
     }
 
@@ -326,11 +326,11 @@ class MainActivity : AppCompatActivity() {
                         else
                             setCurrentUser(task.result?.data as Map<String, Any>)
                     else
-                        ErrorHandler.errorHandling(this, TAG,
-                            Throwable(), Exception("data read failed"), getString(R.string.data_read_failed))
+                        ErrorHandler.errorHandling(this, Exception("task result is null"),
+                            Throwable(), getString(R.string.data_read_failed))
                 } else
-                    ErrorHandler.errorHandling(this, TAG,
-                        Throwable(), task.exception as StorageException, getString(R.string.data_read_failed))
+                    ErrorHandler.errorHandling(this, task.exception as StorageException,
+                        Throwable(), getString(R.string.data_read_failed))
             }
     }
 
@@ -363,15 +363,15 @@ class MainActivity : AppCompatActivity() {
                             if (updateTask.isSuccessful)
                                 println("$TAG: token updated")
                             else
-                                ErrorHandler.errorHandling(this, TAG,
-                                    Throwable(), task.exception as StorageException, getString(R.string.token_storage_failed))
+                                ErrorHandler.errorHandling(this, task.exception as StorageException,
+                                    Throwable(),  getString(R.string.token_storage_failed))
                         }
                 } else
-                    ErrorHandler.errorHandling(this, TAG,
-                        Throwable(), Exception("token generation failed"), getString(R.string.token_generation_failed))
+                    ErrorHandler.errorHandling(this, Exception("token generation failed"),
+                        Throwable(), getString(R.string.token_generation_failed))
             } else
-                ErrorHandler.errorHandling(this, TAG,
-                    Throwable(), task.exception, getString(R.string.token_generation_failed))
+                ErrorHandler.errorHandling(this, task.exception, Throwable(),
+                    getString(R.string.token_generation_failed))
         }
     }
 

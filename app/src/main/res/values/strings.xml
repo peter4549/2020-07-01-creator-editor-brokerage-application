@@ -3,10 +3,10 @@
     <string name="facebook_app_id">871598669995139</string>
     <string name="fb_login_protocol_scheme">fb871598669995139</string>
 
-    <!-- common -->
+    <!-- Common -->
     <string name="ok">확인</string>
 
-    <!-- verification -->
+    <!-- Verification -->
     <string name="code_lost">인증번호가 손실되었습니다.</string>
     <string name="code_sent">인증번호가 발송되었습니다.</string>
     <string name="invalid_request">유효하지 않은 요청입니다. 전화번호를 확인해주세요.</string>
@@ -114,8 +114,6 @@
     <string name="add_channel">채널 추가</string>
     <string name="no_registered_channel">등록된 채널이 없습니다.</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title">제목</string>
     <string name="description">설명</string>
     <string name="categories_selection">카테고리 선택 (1개 이상 선택)</string>
@@ -137,6 +135,10 @@
     <string name="invalid_api_key">API 키가 유효하지 않습니다.</string>
     <string name="channels_not_found">채널을 찾지 못했습니다.</string>
     <string name="n_channels_not_found">개의 채널을 찾지 못했습니다.</string>
+    <string name="failed_to_load_videos">비디오를 불러오는데 실패했습니다.</string>
+    <string name="only_videos_uploaded_by_you_can_be_registered">직접 업로드한 동영상만 등록할 수 있습니다.</string>
+    <string name="invalid_channel_id">채널 ID가 유효하지 않습니다.</string>
+    <string name="playlist_id_not_found">플레이리스트 ID를 찾지 못했습니다.</string>
 
     <!--string name="default_web_client_id">279682383751-rdjblp84735k1piq5ra4c61ti6a1mlgr.apps.googleusercontent.com</string> -->
     <!-- 279682383751-umfg61b7i143qabqbootevo4osdvurbl.apps.googleusercontent.com -->

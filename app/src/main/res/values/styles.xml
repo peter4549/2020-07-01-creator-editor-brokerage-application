@@ -3,7 +3,7 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@android:color/darker_gray</item>
         <item name="colorAccent">@color/colorAccent</item>
 
         <item name="android:textViewStyle">@style/TextViewFontStyle</item>
@@ -11,8 +11,6 @@
         <item name="android:editTextStyle">@style/EditTextFontStyle</item>
 
         <item name="android:dropDownListViewStyle">@style/SpinnerTheme</item>
-
-        <item name="android:windowFullscreen">true</item>
     </style>
 
     <style name="LoginButtonTheme">

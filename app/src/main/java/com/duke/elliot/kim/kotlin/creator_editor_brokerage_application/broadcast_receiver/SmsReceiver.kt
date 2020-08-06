@@ -16,7 +16,6 @@ class SmsReceiver : BroadcastReceiver() {
         val messages = parseSmsMessage(bundle)
 
         if (messages.isNotEmpty()) {
-            // val originatingAddress = messages[0]?.originatingAddress
             val messageBody = messages[0]?.messageBody
 
             if (messageBody?.contains(SMS_TEMPLATE)!!) {

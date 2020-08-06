@@ -13,11 +13,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.ErrorHandler
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.ResponseFailedException
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PlaylistModel
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
-import com.google.gson.Gson
-import com.google.gson.internal.LinkedTreeMap
 import kotlinx.android.synthetic.main.dialog_fragment_playlists.*
 import kotlinx.android.synthetic.main.item_view_playlist.view.*
 import kotlinx.coroutines.CoroutineScope
@@ -48,53 +46,38 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
     inner class PlaylistsRecyclerViewAdapter(channelId: String) :
         RecyclerView.Adapter<PlaylistsRecyclerViewAdapter.ViewHolder>() {
 
-        private val playlists = mutableListOf<PlaylistModel>()
-        private val youTubeDataApi: YouTubeDataApi
+        private val youTubeDataApi = (requireActivity() as YouTubeChannelsActivity).youTubeDataApi
+        private var playlists = mutableListOf<PlaylistModel>()
 
         init {
-            getPlaylistsByChannelId(channelId)
-            youTubeDataApi = (requireActivity() as YouTubeChannelsActivity).youTubeDataApi
+            setPlaylistsByChannelId(channelId)
         }
 
-        private fun getPlaylistsByChannelId(channelId: String) {
+        private fun setPlaylistsByChannelId(channelId: String) {
 
             val request = youTubeDataApi.getPlaylistsRequestByChannelId(channelId)
 
             val okHttpClient = OkHttpClient()
             okHttpClient.newCall(request).enqueue(object: Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    ErrorHandler.errorHandling(requireContext(),
-                        TAG,
-                        Throwable(), e,
+                    ErrorHandler.errorHandling(requireContext(), e, Throwable(),
                         getString(R.string.failed_to_load_playlists))
                 }
 
                 override fun onResponse(call: Call, response: Response) {
                     if (response.isSuccessful) {
                         try {
-                            val map: Map<*, *>? =
-                                Gson().fromJson(response.body?.string(), Map::class.java)
-                            val items = youTubeDataApi.getItemsFromMap(map!!)
-                            for (item in items) {
-                                val playlist =
-                                    youTubeDataApi.getPlaylistByItem(item as LinkedTreeMap<*, *>)
-                                playlists.add(playlist)
-                            }
-
+                            playlists = youTubeDataApi.getPlaylistsFromRequest(response)
                             CoroutineScope(Dispatchers.Main).launch {
                                 notifyDataSetChanged()
                             }
                         } catch (e: Exception) {
-                            ErrorHandler.errorHandling(requireContext(),
-                                TAG,
-                                Throwable(), e,
+                            ErrorHandler.errorHandling(requireContext(), e, Throwable(),
                                 getString(R.string.failed_to_load_playlists))
                         }
                     } else {
-                        ErrorHandler.errorHandling(requireContext(),
-                            TAG,
-                            Throwable(), Exception("response failed"),
-                            getString(R.string.failed_to_load_playlists))
+                        ErrorHandler.errorHandling(requireContext(), ResponseFailedException("response failed", response),
+                            Throwable(), getString(R.string.failed_to_load_playlists))
                     }
                 }
             })
@@ -129,11 +112,6 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
             }
         }
 
-        private fun getVideosOnPlaylist(playlistId: String) {
-            //
-
-        }
-
         private fun loadImage(imageView: ImageView, imageUri: String) {
             Glide.with(imageView.context)
                 .load(imageUri)
@@ -141,9 +119,5 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(imageView)
         }
-    }
-
-    companion object {
-        private const val TAG = "PlaylistDialogFragment"
     }
 }

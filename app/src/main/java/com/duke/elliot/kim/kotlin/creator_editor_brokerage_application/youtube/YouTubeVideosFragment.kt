@@ -11,13 +11,13 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.ErrorHandler
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.ResponseFailedException
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.VideoModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
-import com.google.gson.Gson
-import com.google.gson.internal.LinkedTreeMap
 import kotlinx.android.synthetic.main.fragment_youtube_videos.*
 import kotlinx.android.synthetic.main.fragment_youtube_videos.view.*
 import kotlinx.android.synthetic.main.item_view_video.view.*
@@ -28,7 +28,7 @@ import okhttp3.*
 import java.io.IOException
 
 class YouTubeVideosFragment(private val sourceId: String? = null,
-                            private val allVideos: Boolean? = null,
+                            private val isAllVideos: Boolean? = null,
                             private val playlistTitle: String? = null) : Fragment() {
 
     override fun onCreateView(
@@ -41,17 +41,18 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
         (activity as YouTubeChannelsActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
 
         if (playlistTitle == null)
-            view.toolbar.title = "모든 비디오"
+            view.toolbar.title = getString(R.string.all_videos)
         else
             view.toolbar.title = playlistTitle
 
-        if (sourceId != null && allVideos != null) {
+        if (sourceId != null && isAllVideos != null) {
             view.recycler_view.apply {
                 adapter = VideosRecyclerViewAdapter(sourceId)
                 layoutManager = LayoutManagerWrapper(requireContext(), 1)
             }
         } else {
-            println("$TAG: channel id not found")
+            ErrorHandler.errorHandling(requireContext(), Exception("channel id not found"),
+                Throwable(), getString(R.string.channel_id_not_found))
         }
         return view
     }
@@ -70,134 +71,92 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
 
     inner class VideosRecyclerViewAdapter(sourceId: String) : RecyclerView.Adapter<VideosRecyclerViewAdapter.ViewHolder>() {
 
-        private val videos = mutableListOf<VideoModel>()
+        private val youTubeDataApi = (requireActivity() as YouTubeChannelsActivity).youTubeDataApi
+        private var videos = mutableListOf<VideoModel>()
 
         init {
-            if (allVideos == true)
+            if (isAllVideos == true)
                 setVideosByChannelId(sourceId)
-            else if (allVideos == false)
+            else if (isAllVideos == false)
                 setVideosByPlaylistId(sourceId)
         }
 
         private fun setVideosByChannelId(channelId: String) {
-            // 이게 아니도 비디오 아이템으로 읽어올것. 비디오 아이템에서 뽑아오면 된다. 만약 채널 목록이 없는 경우 전부 불러오도록.
-            // 페이지 처리도 여기서.
-            // 여기서 플레이리스트 카운트 받고, url을 다르게 설정할 것.
-            val url = "https://www.googleapis.com/youtube/v3/search?key=${getString(R.string.google_api_key)}&" +
-                    "part=snippet&channelId=$channelId"
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+            val request = youTubeDataApi.getVideosRequestByChannelId(channelId)
             val okHttpClient = OkHttpClient()
             okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    showToast(requireContext(), "비디오를 읽어오는데 실패했습니다. (4)")
-                    println("$TAG: failed to get video")
+                    ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                        getString(R.string.failed_to_load_videos))
                 }
 
                 override fun onResponse(call: Call, response: Response) {
                     if (response.isSuccessful) {
                         try {
-                            val map: Map<*, *>? =
-                                Gson().fromJson(response.body?.string(), Map::class.java)
-                            val items = (map?.get("items") as ArrayList<*>)
-                            val videoIds = items.filter {
-                                ((it as LinkedTreeMap<*, *>)["id"]
-                                        as LinkedTreeMap<*, *>)["kind"] == "youtube#video"
-                            }.map { ((it as LinkedTreeMap<*, *>)["id"] as LinkedTreeMap<*, *>)["videoId"] as String }
-
+                            val videoIds = youTubeDataApi.getVideoIdsFromResponse(response, true)
                             setVideosByIds(videoIds.joinToString(separator = ","))
                         } catch (e: Exception) {
-                            showToast(requireContext(), "비디오를 읽어오는데 실패했습니다. 후에엥 (3)")
-                            println("$TAG KINSTONE: ${e.message}")
+                            ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                                getString(R.string.failed_to_load_videos))
                         }
-                    } else {
-                        showToast(requireContext(), "채널을 읽어오는데 실패했습니다. (4)")
-                        println("$TAG: failed to get channel")
-                    }
+                    } else
+                        ErrorHandler.errorHandling(requireContext(),
+                            ResponseFailedException("failed to load channel", response),
+                            Throwable(), getString(R.string.failed_to_load_videos))
                 }
-
             })
         }
 
         private fun setVideosByPlaylistId(playlistId: String) {
-            val url = "https://www.googleapis.com/youtube/v3/playlistItems?key=${getString(R.string.google_api_key)}&" +
-                    "part=contentDetails&playlistId=$playlistId"
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+            val request = youTubeDataApi.getVideosRequestByPlaylistId(playlistId)
             val okHttpClient = OkHttpClient()
             okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    showToast(requireContext(), "비디오를 읽어오는데 실패했습니다. (4)")
-                    println("$TAG: failed to get video")
+                    ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                        getString(R.string.failed_to_load_videos))
                 }
 
                 override fun onResponse(call: Call, response: Response) {
                     if (response.isSuccessful) {
                         try {
-                            val map: Map<*, *>? =
-                                Gson().fromJson(response.body?.string(), Map::class.java)
-                            val items = map?.get("items") as ArrayList<*>
-                            val videoIds = items.map {
-                                ((it as LinkedTreeMap<*, *>)["contentDetails"]
-                                        as LinkedTreeMap<*, *>)["videoId"] as String
-                            }
-
+                            val videoIds =
+                                youTubeDataApi.getVideoIdsFromResponse(response, false)
                             setVideosByIds(videoIds.joinToString(separator = ","))
                         } catch (e: Exception) {
-                            showToast(requireContext(), "비디오를 읽어오는데 실패했습니다. 후에엥 (3)")
-                            println("$TAG KINSTONE: ${e.message}")
+                            ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                                getString(R.string.failed_to_load_videos))
                         }
-                    } else {
-                        showToast(requireContext(), "채널을 읽어오는데 실패했습니다. (4)")
-                        println("$TAG: failed to get channel")
-                    }
+                    } else
+                        ErrorHandler.errorHandling(requireContext(),
+                            ResponseFailedException("failed to load videos" ,response),
+                            Throwable(), getString(R.string.failed_to_load_videos))
                 }
-
             })
         }
 
         private fun setVideosByIds(videoIds: String) {
-            val url = "https://www.googleapis.com/youtube/v3/videos?key=${getString(R.string.google_api_key)}&" +
-                    "part=snippet,statistics&id=$videoIds"
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
+            val request = youTubeDataApi.getVideosRequestByIds(videoIds)
             val okHttpClient = OkHttpClient()
-            val response = okHttpClient.newCall(request).execute()
+            okHttpClient.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    ErrorHandler.errorHandling(requireContext(),
+                        e, Throwable(), getString(R.string.failed_to_load_videos))
+                }
 
-            if (response.isSuccessful) {
-                try {
-                    val map: Map<*, *>? =
-                        Gson().fromJson(response.body?.string(), Map::class.java)
-                    val items = map?.get("items") as ArrayList<*>
-
-                    for (item in items) {
-                        val id = (item as LinkedTreeMap<*, *>)["id"] as String
-                        val snippet = item["snippet"] as LinkedTreeMap<*, *>
-                        val channelId = snippet["channelId"] as String
-                        val description = snippet["description"] as String
-                        val publishTime = snippet["publishedAt"] as String
-                        val title = snippet["title"] as String
-                        val thumbnails = snippet["thumbnails"] as LinkedTreeMap<*, *>
-                        val thumbnailUri = (thumbnails["default"] as LinkedTreeMap<*, *>)["url"] as String
-
-                        this.videos.add(0, VideoModel(channelId, description, publishTime, thumbnailUri, title, id))
-                        CoroutineScope(Dispatchers.Main).launch {
-                            notifyItemInserted(0)
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        try {
+                            this@VideosRecyclerViewAdapter.videos = youTubeDataApi.getVideosFromResponse(response)
+                            CoroutineScope(Dispatchers.Main).launch {
+                                notifyItemInserted(0)
+                            }
+                        } catch (e: Exception) {
+                            ErrorHandler.errorHandling(requireContext(),
+                                e, Throwable(), getString(R.string.failed_to_load_videos))
                         }
                     }
-
-
-                } catch (e: Exception) {
-                    showToast(requireContext(), "비디오를 읽어오는데 실패했습니다.")
-                    println("$TAG KINSTONE: ${e.message}")
                 }
-            }
+            })
         }
 
         inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view)
@@ -208,7 +167,6 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
         ): ViewHolder {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_view_video, parent, false)
-
             return ViewHolder(view)
         }
 
@@ -225,12 +183,14 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
             loadImage(holder.view.image_view, video.thumbnailUri)
 
             holder.view.setOnClickListener {
-                val intent = Intent()
-
-                intent.putExtra(KEY_THUMBNAIL_URI, video.thumbnailUri)
-                intent.putExtra(KEY_VIDEO_ID, video.videoId)
-                requireActivity().setResult(Activity.RESULT_OK, intent)
-                requireActivity().finish()
+                if (MainActivity.currentUser?.channelIds?.contains(video.channelId)!!) {
+                    val intent = Intent()
+                    intent.putExtra(KEY_THUMBNAIL_URI, video.thumbnailUri)
+                    intent.putExtra(KEY_VIDEO_ID, video.videoId)
+                    requireActivity().setResult(Activity.RESULT_OK, intent)
+                    requireActivity().finish()
+                } else
+                    showToast(requireContext(), getString(R.string.only_videos_uploaded_by_you_can_be_registered))
             }
         }
 
