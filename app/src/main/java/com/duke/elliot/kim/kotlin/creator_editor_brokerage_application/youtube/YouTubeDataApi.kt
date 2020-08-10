@@ -11,7 +11,7 @@ import okhttp3.FormBody
 import okhttp3.Request
 import okhttp3.Response
 
-class YouTubeDataApi(private val context: Context) {
+class YouTubeDataApi(context: Context) {
 
     private val googleApiKey = context.getString(R.string.google_api_key)
 

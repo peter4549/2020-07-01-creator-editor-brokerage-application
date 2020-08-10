@@ -28,7 +28,8 @@
                 android:layout_gravity="end"
                 android:layout_margin="8dp"
                 android:src="@drawable/ic_menu_white_32dp"
-                android:tint="@android:color/holo_blue_dark"/>
+                android:tint="@android:color/holo_blue_dark"
+                android:contentDescription="@string/menu_bar" />
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -60,7 +61,7 @@
                 android:layout_height="48dp"
                 android:layout_gravity="center_vertical"
                 android:padding="8dp"
-                android:hint="이름"
+                android:hint="@string/name"
                 android:textColor="@android:color/black"/>
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -74,7 +75,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:padding="8dp"
-                android:hint="휴대폰 번호"
+                android:hint="@string/phone_number"
                 android:inputType="phone"
                 android:textColor="@android:color/black"/>
 
@@ -84,12 +85,12 @@
             android:id="@+id/button_verification"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="본인인증"/>
+            android:text="@string/verification"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="클래스 선택"/>
+            android:text="@string/select_class"/>
 
         <Spinner
             android:id="@+id/spinner_occupation"
@@ -101,14 +102,14 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_gravity="center_vertical"
-            android:hint="공개 이름"
+            android:hint="@string/public_name"
             android:textColor="@android:color/black"/>
 
         <EditText
             android:id="@+id/edit_text_pr"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:hint="PR"
+            android:hint="@string/pr"
             android:gravity="top"
             android:padding="@dimen/padding_middle"
             android:textColor="@android:color/black"/>
@@ -117,13 +118,13 @@
             android:id="@+id/button_save_data"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="저장"/>
+            android:text="@string/save"/>
 
         <Button
             android:id="@+id/button_partners_registration"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="파트너스 등록"
+            android:text="@string/register_to_partners"
             android:visibility="gone"/>
 
     </LinearLayout>

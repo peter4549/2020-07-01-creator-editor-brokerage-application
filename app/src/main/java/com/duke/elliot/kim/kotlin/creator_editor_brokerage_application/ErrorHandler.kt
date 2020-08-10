@@ -13,52 +13,52 @@ class ErrorHandler {
 
         private lateinit var appName: String
 
-        fun errorHandling(context: Context, e: Exception?, throwable: Throwable, toastMessage: String?) {
+        fun errorHandling(context: Context, e: Exception?, toastMessage: String?) {
             if (toastMessage != null)
                 showToast(context, toastMessage)
 
             appName = context.getString(R.string.app_name)
 
             when(e) {
-                is IOException -> ioExceptionHandling(context, e, throwable)
-                is ResponseFailedException -> responseFailedExceptionHandling(context, e, throwable)
-                is StorageException -> fireStoreErrorHandling(context, e, throwable)
-                else -> printLog(e, throwable)
+                is IOException -> ioExceptionHandling(context, e)
+                is ResponseFailedException -> responseFailedExceptionHandling(context, e)
+                is StorageException -> fireStoreErrorHandling(context, e)
+                else -> printLog(e)
             }
         }
 
-        private fun fireStoreErrorHandling(context: Context, e: StorageException, throwable: Throwable) {
+        private fun fireStoreErrorHandling(context: Context, e: StorageException) {
             when(e.errorCode) {
-                StorageException.ERROR_BUCKET_NOT_FOUND -> printLog(e, throwable)
-                StorageException.ERROR_CANCELED -> printLog(e, throwable)
-                StorageException.ERROR_INVALID_CHECKSUM -> printLog(e, throwable)
-                StorageException.ERROR_NOT_AUTHENTICATED -> printLog(e, throwable)
-                StorageException.ERROR_NOT_AUTHORIZED -> printLog(e, throwable)
-                StorageException.ERROR_OBJECT_NOT_FOUND -> printLog(e, throwable)
-                StorageException.ERROR_PROJECT_NOT_FOUND -> printLog(e, throwable)
-                StorageException.ERROR_QUOTA_EXCEEDED -> printLog(e, throwable)
-                StorageException.ERROR_RETRY_LIMIT_EXCEEDED -> printLog(e, throwable)
+                StorageException.ERROR_BUCKET_NOT_FOUND -> printLog(e)
+                StorageException.ERROR_CANCELED -> printLog(e)
+                StorageException.ERROR_INVALID_CHECKSUM -> printLog(e)
+                StorageException.ERROR_NOT_AUTHENTICATED -> printLog(e)
+                StorageException.ERROR_NOT_AUTHORIZED -> printLog(e)
+                StorageException.ERROR_OBJECT_NOT_FOUND -> printLog(e)
+                StorageException.ERROR_PROJECT_NOT_FOUND -> printLog(e)
+                StorageException.ERROR_QUOTA_EXCEEDED -> printLog(e)
+                StorageException.ERROR_RETRY_LIMIT_EXCEEDED -> printLog(e)
                 else -> {
                     showToast(context, context.getString(R.string.unknown_error_occured))
-                    printLog(e, throwable)
+                    printLog(e)
                 }
             }
         }
 
-        private fun ioExceptionHandling(context: Context, e: IOException, throwable: Throwable) {
+        private fun ioExceptionHandling(context: Context, e: IOException) {
             when (e) {
                 is java.net.UnknownHostException -> {
                     showToast(context, context.getString(R.string.request_check_internet_connection))
-                    printLog(e, throwable)
+                    printLog(e)
                 }
                 else -> {
                     showToast(context, context.getString(R.string.unknown_error_occured))
-                    printLog(e, throwable)
+                    printLog(e)
                 }
             }
         }
 
-        private fun responseFailedExceptionHandling(context: Context, e: ResponseFailedException, throwable: Throwable) {
+        private fun responseFailedExceptionHandling(context: Context, e: ResponseFailedException) {
             val map: Map<*, *>? = Gson().fromJson(e.response.body?.string(), Map::class.java)
             val error = map?.get("error") as LinkedTreeMap<*, *>
             val code = error["code"] as Double?
@@ -76,10 +76,10 @@ class ErrorHandler {
                         "invalidChannelId" -> showToast(context, context.getString(R.string.invalid_channel_id))
                     }
 
-                    printLog(e, throwable, code, message, reason)
+                    printLog(e, code, message, reason)
                 }
                 403.0 -> {
-                    printLog(e, throwable, code, message, reason)
+                    printLog(e, code, message, reason)
                     throw e
                 }
                 404.0 -> {
@@ -88,24 +88,22 @@ class ErrorHandler {
                         "playlistNotFound" -> showToast(context, context.getString(R.string.playlist_id_not_found))
                     }
 
-                    printLog(e, throwable, code, message, reason)
+                    printLog(e, code, message, reason)
                 }
                 else -> {
-                    printLog(e, throwable)
+                    printLog(e)
                     throw e
                 }
             }
         }
 
-        private fun printLog(e: Exception?, throwable: Throwable) {
-            println("$appName error")
-            println("Throwable stackTrace: ${throwable.stackTrace[0]}")
+        private fun printLog(e: Exception?) {
+            println("$appName exception")
             e?.printStackTrace()
         }
 
-        private fun printLog(e: Exception?, throwable: Throwable, code: Double?, message: String?, reason: String?) {
+        private fun printLog(e: Exception?, code: Double?, message: String?, reason: String?) {
             println("$appName error")
-            println("Throwable stackTrace: ${throwable.stackTrace[0]}")
             println("code: $code")
             println("message: $message")
             println("reason: $reason")

@@ -116,7 +116,7 @@
 
     <string name="title">제목</string>
     <string name="description">설명</string>
-    <string name="categories_selection">카테고리 선택 (1개 이상 선택)</string>
+    <string name="select_categories">카테고리 선택 (1개 이상 선택)</string>
     <string name="playlist_selection">플레이리스트 선택</string>
 
     <string name="creator">크리에이터</string>
@@ -139,6 +139,33 @@
     <string name="only_videos_uploaded_by_you_can_be_registered">직접 업로드한 동영상만 등록할 수 있습니다.</string>
     <string name="invalid_channel_id">채널 ID가 유효하지 않습니다.</string>
     <string name="playlist_id_not_found">플레이리스트 ID를 찾지 못했습니다.</string>
+
+    <string name="player_initialization_failure_message">플레이어를 초기화하는데 실패했습니다. 유튜브를 최신 버전으로 업데이트 하십시오.</string>
+    <string name="failed_to_load_video">비디오를 불러오는데 실패했습니다.</string>
+    <string name="register">등록</string>
+
+    <string name="failed_to_load_image">이미지를 불러오는데 실패했습니다.</string>
+
+    <string name="write_pr">PR 작성</string>
+    <string name="select_type">타입 선택</string>
+
+    <string name="find_creator">크리에이터 찾기</string>
+    <string name="find_editor">편집자 찾기</string>
+    <string name="menu_bar">Menu bar</string>
+    <string name="name">이름</string>
+    <string name="phone_number">휴대폰 번호</string>
+    <string name="verification">본인인증</string>
+    <string name="select_class">클래스 선택</string>
+    <string name="public_name">공개 이름</string>
+    <string name="pr">PR</string>
+    <string name="save">저장</string>
+    <string name="register_to_partners">파트너스 등록</string>
+    <string name="registered_works">등록된 작품 (0/3)</string>
+    <string name="show_my_pr">내 PR 보기</string>
+
+    <string name="registered_pr_not_found">등록된 PR을 찾지 못했습니다.</string>
+
+    <string name="no_registered_video">등록된 비디오가 없습니다.</string>
 
     <!--string name="default_web_client_id">279682383751-rdjblp84735k1piq5ra4c61ti6a1mlgr.apps.googleusercontent.com</string> -->
     <!-- 279682383751-umfg61b7i143qabqbootevo4osdvurbl.apps.googleusercontent.com -->

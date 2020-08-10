@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
+    <color name="colorAccent">#4F4F4F</color>
 
     <!-- tab icon -->
     <color name="colorTabIconSelected">#212121</color>
@@ -19,5 +19,12 @@
     <color name="colorLightGrey">#DBDBDB</color>
 
     <color name="backgroundColorFab">#fff9c4</color>
+
+    <!-- Text colors -->
+    <color name="colorTextDefault">#404040</color>
+
+    <!-- Background colors -->
+    <color name="colorBackgroundDefault">#F0F0F0</color>
+    <color name="colorBackgroundWhite">#FEFEFE</color>
 
 </resources>

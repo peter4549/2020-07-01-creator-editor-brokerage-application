@@ -1,5 +1,6 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -88,7 +89,7 @@ class MainActivity : AppCompatActivity() {
                         enterChatRoom(chatRoomId)
                     else
                         ErrorHandler.errorHandling(this,
-                            Exception("chat room not found"), Throwable(), getString(R.string.chat_room_not_found))
+                            Exception("chat room not found"), getString(R.string.chat_room_not_found))
                 }
             }
         }
@@ -104,7 +105,7 @@ class MainActivity : AppCompatActivity() {
                     startFragment(ChatFragment(chatRoom), R.id.relative_layout_activity_main, CHAT_FRAGMENT_TAG)
                 } else
                     ErrorHandler.errorHandling(this, task.exception as StorageException,
-                        Throwable(), getString(R.string.chat_room_not_found))
+                        getString(R.string.chat_room_not_found))
             }
     }
 
@@ -182,7 +183,7 @@ class MainActivity : AppCompatActivity() {
 
                 if (state == ViewPager2.SCROLL_STATE_IDLE) {
                     if (pageChanged) {
-                        showToast(this@MainActivity, "curr page $position")
+                        //showToast(this@MainActivity, "curr page $position")
                     }
                 }
             }
@@ -198,6 +199,8 @@ class MainActivity : AppCompatActivity() {
         }.attach()
 
         val linearLayout = tab_layout.getChildAt(0) as LinearLayout
+
+        @SuppressLint("ClickableViewAccessibility")
         for (i in 0 until linearLayout.childCount) {
             linearLayout.getChildAt(i).setOnTouchListener { _, motionEvent ->
                 if (motionEvent.action == MotionEvent.ACTION_UP) {
@@ -210,11 +213,11 @@ class MainActivity : AppCompatActivity() {
                         }
                         currentUser == null -> {
                             if (i == myInfoTabIndex || i == homeTabIndex)
-                                tab_layout.getTabAt(i)?.select()
+                                view_pager.setCurrentItem(i, false)
                             else
                                 requestProfileCreation()
                         }
-                        else -> tab_layout.getTabAt(i)?.select()
+                        else -> view_pager.setCurrentItem(i, false)
                     }
                 }
                 true
@@ -327,10 +330,10 @@ class MainActivity : AppCompatActivity() {
                             setCurrentUser(task.result?.data as Map<String, Any>)
                     else
                         ErrorHandler.errorHandling(this, Exception("task result is null"),
-                            Throwable(), getString(R.string.data_read_failed))
+                            getString(R.string.data_read_failed))
                 } else
                     ErrorHandler.errorHandling(this, task.exception as StorageException,
-                        Throwable(), getString(R.string.data_read_failed))
+                        getString(R.string.data_read_failed))
             }
     }
 
@@ -364,13 +367,13 @@ class MainActivity : AppCompatActivity() {
                                 println("$TAG: token updated")
                             else
                                 ErrorHandler.errorHandling(this, task.exception as StorageException,
-                                    Throwable(),  getString(R.string.token_storage_failed))
+                                    getString(R.string.token_storage_failed))
                         }
                 } else
                     ErrorHandler.errorHandling(this, Exception("token generation failed"),
-                        Throwable(), getString(R.string.token_generation_failed))
+                        getString(R.string.token_generation_failed))
             } else
-                ErrorHandler.errorHandling(this, task.exception, Throwable(),
+                ErrorHandler.errorHandling(this, task.exception,
                     getString(R.string.token_generation_failed))
         }
     }

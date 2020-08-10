@@ -1,5 +1,6 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.view.*
@@ -62,13 +63,14 @@ class HomeFragment : Fragment() {
                 val filterFragment = FilterFragment()
                 (activity as MainActivity).startFragment(filterFragment, R.id.relative_layout_activity_main, MainActivity.FILTER_FRAGMENT_TAG)
             }
-            R.id.item_notifications -> {}
-            R.id.item_search -> {}
+            R.id.item_notifications -> {  }
+            R.id.item_search -> {  }
             else -> throw Exception("$TAG: invalid item")
         }
 
         return super.onOptionsItemSelected(item)
     }
+
 
     private fun initViewPagerAndTabLayout() {
         view_pager.adapter = HomeFragmentStateAdapter(requireActivity())
@@ -83,6 +85,7 @@ class HomeFragment : Fragment() {
         }.attach()
 
         val linearLayout = tab_layout.getChildAt(0) as LinearLayout
+        @SuppressLint("ClickableViewAccessibility")
         for (i in 0 until linearLayout.childCount) {
             linearLayout.getChildAt(i).setOnTouchListener { _, motionEvent ->
                 if (motionEvent.action == MotionEvent.ACTION_UP) {

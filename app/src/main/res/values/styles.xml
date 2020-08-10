@@ -13,6 +13,10 @@
         <item name="android:dropDownListViewStyle">@style/SpinnerTheme</item>
     </style>
 
+    <style name="ToolbarFont">
+        <item name="android:fontFamily">@font/nanum_gothic_bold_font_family</item>
+    </style>
+
     <style name="LoginButtonTheme">
         <item name="android:layout_width">280dp</item>
         <item name="android:layout_height">50dp</item>
@@ -47,17 +51,19 @@
         <item name="android:paddingStart">@dimen/padding_middle_large</item>
     </style>
 
-    <!-- Font style -->
+    <!-- Default style -->
     <style name="TextViewFontStyle" parent="@android:style/Widget.DeviceDefault.TextView">
-        <item name="android:fontFamily">@font/nanum_gothic_font_family</item>
+        <item name="android:fontFamily">@font/nanum_gothic_regular_font_family</item>
+        <item name="android:textColor">@color/colorTextDefault</item>
     </style>
 
     <style name="ButtonFontStyle" parent="@android:style/Widget.DeviceDefault.Button.Borderless">
-        <item name="android:fontFamily">@font/nanum_gothic_font_family</item>
+        <item name="android:fontFamily">@font/nanum_gothic_regular_font_family</item>
     </style>
 
     <style name="EditTextFontStyle" parent="@android:style/Widget.DeviceDefault.EditText">
-        <item name="android:fontFamily">@font/nanum_gothic_font_family</item>
+        <item name="android:fontFamily">@font/nanum_gothic_regular_font_family</item>
+        <item name="android:textColor">@color/colorTextDefault</item>
     </style>
 
 </resources>

@@ -2,46 +2,51 @@ package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragment
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.widget.*
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube.YouTubeChannelsActivity
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.StaticDataRecyclerViewAdapter
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.*
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments.SelectVideoSourceDialogFragment
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments.RegisteredPrListDialogFragment
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.dialog_fragments.VideoOptionDialogFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.PrModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.VideoModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube.YouTubeChannelsActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube.YouTubeVideosFragment
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.fragment_writing.*
-import kotlinx.android.synthetic.main.fragment_writing.image_view_add_1
-import kotlinx.android.synthetic.main.fragment_writing.image_view_add_2
 import kotlinx.android.synthetic.main.fragment_writing.view.*
-import kotlinx.coroutines.*
-import java.lang.IllegalStateException
+import kotlinx.android.synthetic.main.item_view_image.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class WritingFragment : Fragment() {
 
@@ -50,18 +55,15 @@ class WritingFragment : Fragment() {
     private lateinit var selectedCategory1: String
     private lateinit var selectedCategory2: String
     private lateinit var selectedImageView: ImageView
-    private val imageFileNames = mutableListOf<String?>(null, null, null)
-    private val imageFileUris = mutableListOf<Uri?>(null, null, null)
-    private val youtubeVideoIds = mutableListOf<String?>(null, null, null)
-    private var localVideosCount = 0
-    private var savedLocalVideosCount = 0
-    private var thumbnailUri = ""
+    private lateinit var selectedType: String
+    private lateinit var types: ArrayList<String>
+    private val youtubeVideos = mutableListOf<VideoModel?>(null, null, null)
 
     private val onImageViewClickListener = View.OnClickListener { view ->
         selectedImageView = view as ImageView
-        val selectVideoSourceDialogFragment = SelectVideoSourceDialogFragment()
+        val videoOptionDialogFragment = VideoOptionDialogFragment()
 
-        selectVideoSourceDialogFragment.show(requireActivity().supportFragmentManager, TAG)
+        videoOptionDialogFragment.show(requireFragmentManager(), TAG)
     }
 
     override fun onCreateView(
@@ -71,7 +73,17 @@ class WritingFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_writing, container, false)
         (requireActivity() as MainActivity).setSupportActionBar(view.toolbar)
         (requireActivity() as MainActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
-        view.toolbar.title = "PR 작성"
+        view.toolbar.title = getString(R.string.write_pr)
+        view.toolbar.setTitleTextAppearance(requireContext(), R.style.ToolbarFont)
+        setHasOptionsMenu(true)
+
+        types = arrayListOf(
+            "-",
+            getString(R.string.find_creator),
+            getString(R.string.find_editor)
+        )
+
+        selectedType = types[0]
 
         contentCategories = arrayListOf(
             "-",
@@ -120,13 +132,31 @@ class WritingFragment : Fragment() {
         selectedCategory1 = contentCategories[0]
         selectedCategory2 = contentCategories[0]
 
+        val layoutManager = LayoutManagerWrapper(requireContext(), 1)
+        layoutManager.orientation = LinearLayoutManager.HORIZONTAL
+        view.recycler_view_images.apply {
+            adapter = ImageRecyclerViewAdapter(arrayListOf(null), R.layout.item_view_image)
+            this.layoutManager = layoutManager
+        }
+
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        spinner_categories_1.adapter = SpinnerAdapter()
+        spinner_type.adapter = SpinnerAdapter(types)
+        spinner_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(p0: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                selectedType = types[position]
+            }
+        }
+
+        spinner_categories_1.adapter = SpinnerAdapter(contentCategories)
         spinner_categories_1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(p0: AdapterView<*>?) {
 
@@ -137,7 +167,7 @@ class WritingFragment : Fragment() {
             }
         }
 
-        spinner_categories_2.adapter = SpinnerAdapter()
+        spinner_categories_2.adapter = SpinnerAdapter(contentCategories)
         spinner_categories_2.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(p0: AdapterView<*>?) {
 
@@ -162,14 +192,35 @@ class WritingFragment : Fragment() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu.clear()
+        inflater.inflate(R.menu.menu_writing_fragment, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.item_show_registered_pr -> {
+                showRegisteredPrList()
+            }
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun showRegisteredPrList() {
+        RegisteredPrListDialogFragment().show(requireFragmentManager(), tag)
+    }
+
     private fun setImageWithGlide(imageView: ImageView, uri: Uri?) {
         Glide.with(imageView.context)
             .load(uri)
+            .placeholder(R.drawable.ic_add_to_photos_grey_80dp)
             .error(R.drawable.ic_sentiment_dissatisfied_grey_24dp)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .skipMemoryCache(true)
             .transition(DrawableTransitionOptions.withCrossFade())
-            .transform(CircleCrop())
+            .transform(CenterCrop(), RoundedCorners(8))
             .listener(object: RequestListener<Drawable> {
                 override fun onLoadFailed(
                     e: GlideException?,
@@ -177,7 +228,8 @@ class WritingFragment : Fragment() {
                     target: Target<Drawable>?,
                     isFirstResource: Boolean
                 ): Boolean {
-                    showToast(requireContext(), "이미지 로드에 실패했습니다.")
+                    showToast(requireContext(), getString(R.string.failed_to_load_image))
+
                     println("$TAG: ${e?.message}")
                     return false
                 }
@@ -231,72 +283,47 @@ class WritingFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        when (requestCode) {
-            REQUEST_CODE_GALLERY -> {
-                if (data != null)
-                    setImage(data.data!!, ImageSource.DEVICE)
-            }
-            REQUEST_CODE_YOUTUBE_CHANNELS -> {
-                if (data != null) {
-                    val thumbnailUri = data.getStringExtra(YouTubeVideosFragment.KEY_THUMBNAIL_URI)
-                    val videoId = data.getStringExtra(YouTubeVideosFragment.KEY_VIDEO_ID)
-                    setImage(Uri.parse(thumbnailUri), ImageSource.YOUTUBE, videoId)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                REQUEST_CODE_YOUTUBE_CHANNELS -> {
+                    if (data != null) {
+                        val thumbnailUri =
+                            data.getStringExtra(YouTubeVideosFragment.KEY_THUMBNAIL_URI)
+                        val video = data.getSerializableExtra(YouTubeVideosFragment.KEY_VIDEO) as VideoModel
+                        setImage(video)
+                    }
                 }
             }
         }
     }
 
-    fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK)
-        intent.type = "image/*"
-        startActivityForResult(intent,
-            REQUEST_CODE_GALLERY
-        )
+    /*
+    fun getPathByUri(uri: Uri): String? {
+        var result: String? = null
+        val projection =
+            arrayOf(MediaStore.Images.Media.SIZE)
+        val cursor =
+            requireActivity().contentResolver.query(uri, projection, null, null, null)
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
+                result = cursor.getString(columnIndex)
+            }
+        }
+
+        cursor?.close()
+        return result.toString()
     }
+     */
 
-    private fun setImage(uri: Uri, imageSource: ImageSource, youtubeVideoId: String? = null) {
-        setImageWithGlide(selectedImageView, uri)
+    private fun setImage(video: VideoModel) {
+        setImageWithGlide(selectedImageView, Uri.parse(video.thumbnailUri))
 
-        if (imageSource == ImageSource.DEVICE) {
-            val timestamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
-            val fileName = "$timestamp.png"
-
-            when (selectedImageView) {
-                image_view_add_1 -> {
-                    youtubeVideoIds[0] = null
-                    imageFileNames[0] = fileName
-                    imageFileUris[0] = uri
-                }
-                image_view_add_2 -> {
-                    youtubeVideoIds[1] = null
-                    imageFileNames[1] = fileName
-                    imageFileUris[1] = uri
-                }
-                image_view_add_3 -> {
-                    youtubeVideoIds[2] = null
-                    imageFileNames[2] = fileName
-                    imageFileUris[2] = uri
-                }
-            }
-        } else if (imageSource == ImageSource.YOUTUBE) {
-            when (selectedImageView) {
-                image_view_add_1 -> {
-                    imageFileNames[0] = null
-                    imageFileUris[0] = null
-                    thumbnailUri = uri.toString()
-                    youtubeVideoIds[0] = youtubeVideoId
-                }
-                image_view_add_2 -> {
-                    imageFileNames[1] = null
-                    imageFileUris[1] = null
-                    youtubeVideoIds[1] = youtubeVideoId
-                }
-                image_view_add_3 -> {
-                    imageFileNames[2] = null
-                    imageFileUris[2] = null
-                    youtubeVideoIds[2] = youtubeVideoId
-                }
-            }
+        when (selectedImageView) {
+            image_view_add_1 -> youtubeVideos[0] = video
+            image_view_add_2 -> youtubeVideos[1] = video
+            image_view_add_3 -> youtubeVideos[2] = video
         }
     }
 
@@ -311,33 +338,17 @@ class WritingFragment : Fragment() {
     private fun saveData() {
         if (edit_text_title.text.isBlank()) {
             showToast(requireContext(), "제목을 입력해주세요.")
+            button_upload.isEnabled = true
             return
         }
 
         if (selectedCategory1 == "-" && selectedCategory2 == "-") {
             showToast(requireContext(), "카테고리를 선택해주세요.")
+            button_upload.isEnabled = true
             return
         }
 
-        localVideosCount = imageFileNames.filterNotNull().count()
-
-        if (localVideosCount == 0)
-            saveDataWithoutImages()
-        else {
-            val job = Job() as Job
-            CoroutineScope(Dispatchers.IO + job).launch {
-                launch(Dispatchers.IO + job) {
-                    if (imageFileNames[0] != null && imageFileUris[0] != null)
-                        uploadImage(imageFileUris[0]!!, imageFileNames[0]!!)
-
-                    if (imageFileNames[1] != null && imageFileUris[1] != null)
-                        uploadImage(imageFileUris[1]!!, imageFileNames[1]!!)
-
-                    if (imageFileNames[2] != null && imageFileUris[2] != null)
-                        uploadImage(imageFileUris[2]!!, imageFileNames[2]!!)
-                }
-            }
-        }
+        saveDataWithoutImages()
     }
 
     private fun saveDataWithoutImages() {
@@ -349,14 +360,12 @@ class WritingFragment : Fragment() {
 
             pr.publisherId = user.id
             pr.publisherName = user.publicName
-            pr.occupation = "a" // must be imp.
+            pr.occupation = user.occupation
             pr.title = edit_text_title.text.toString()
             pr.content = (edit_text_description.text ?: "").toString()
             pr.registrationTime =
                 SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
-            pr.imageNames = imageFileNames
-            pr.thumbnailUri = thumbnailUri
-            pr.youtubeVideoIds = youtubeVideoIds
+            pr.youtubeVideos = youtubeVideos.map { it?.toHashMap() }.toMutableList()
 
             if (selectedCategory1 != "-")
                 categories.add(categoryDocumentNames.getValue(selectedCategory1))
@@ -374,7 +383,7 @@ class WritingFragment : Fragment() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         showToast(requireContext(), "PR이 등록되었습니다.", Toast.LENGTH_LONG)
-                        clearUI()
+                        clearUi()
                         button_upload.isEnabled = true
                     }
                     else {
@@ -386,29 +395,11 @@ class WritingFragment : Fragment() {
         }
     }
 
-    private fun uploadImage(uri: Uri, fileName: String) {
-        val storageReference =
-            FirebaseStorage.getInstance().reference
-                .child(COLLECTION_IMAGES)
-                .child(MainActivity.currentUser!!.id)
-                .child(fileName)
-
-        storageReference.putFile(uri).continueWithTask {
-            return@continueWithTask storageReference.downloadUrl
-        }.addOnSuccessListener {
-            println("$TAG: image uploaded, uri: $it")
-            ++savedLocalVideosCount
-
-            if (localVideosCount == savedLocalVideosCount)
-                saveDataWithoutImages()
-        }
-    }
-
-    private fun clearUI() {
+    private fun clearUi() {
+        imageViewCrossFadeOutChain()
         editTextClearWithFadeOut(edit_text_title)
         editTextClearWithFadeOut(edit_text_description)
         spinner_categories_1.setSelection(0)
-        imageViewCrossFadeOutChain()
     }
 
     private fun editTextClearWithFadeOut(editText: EditText) {
@@ -442,30 +433,75 @@ class WritingFragment : Fragment() {
         image_view_add_3.apply {
             animate().alpha(0F)
                 .setDuration(shortAnimationTime.toLong())
-                .setListener(object : AnimatorListenerAdapter() {
+                .setListener(object: AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator?) {
-                        image_view_add_2.apply {
-                            animate().alpha(0F)
-                                .setDuration(shortAnimationTime.toLong())
-                                .setListener(object : AnimatorListenerAdapter() {
-                                    override fun onAnimationEnd(animation: Animator?) {
-                                        Glide.with(image_view_add_1.context)
-                                            .load(R.drawable.ic_add_to_photos_grey_128dp)
-                                            .error(R.drawable.ic_add_to_photos_grey_128dp)
-                                            .diskCacheStrategy(DiskCacheStrategy.NONE)
-                                            .skipMemoryCache(true)
-                                            .transition(DrawableTransitionOptions.withCrossFade())
-                                            .transform(CircleCrop())
-                                            .into(image_view_add_1)
-                                    }
-                                })
-                        }
+                        Glide.with(image_view_add_3.context).clear(image_view_add_3)
+                    }
+                })
+        }
+
+        image_view_add_2.apply {
+            animate().alpha(0F)
+                .setDuration(shortAnimationTime.toLong())
+                .setListener(object: AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator?) {
+                        Glide.with(image_view_add_2.context).clear(image_view_add_2)
+                    }
+                })
+        }
+
+        image_view_add_1.apply {
+            animate().alpha(0F)
+                .setDuration(shortAnimationTime.toLong())
+                .setListener(object: AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator?) {
+                        Glide.with(image_view_add_1.context).clear(image_view_add_1)
+                        crossFadeInImageView(image_view_add_1)
                     }
                 })
         }
     }
 
-    inner class SpinnerAdapter: BaseAdapter() {
+    private fun crossFadeInImageView(imageView: ImageView) {
+        val shortAnimationTime = resources.getInteger(android.R.integer.config_shortAnimTime)
+
+        imageView.apply {
+            alpha = 0F
+            visibility = View.VISIBLE
+            animate().alpha(1F)
+                .setDuration(shortAnimationTime.toLong())
+                .setListener(null)
+        }
+    }
+
+    inner class ImageRecyclerViewAdapter(private val thumbnailUris: ArrayList<Uri?>, layoutId: Int = R.layout.item_view_image)
+        : StaticDataRecyclerViewAdapter<Uri?>(thumbnailUris, layoutId) {
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            super.onBindViewHolder(holder, position)
+            setThumbnail(holder.view.image_view_thumbnail, thumbnailUris[position])
+            holder.view.image_view_thumbnail.setOnClickListener {
+                selectedImageView = it as ImageView
+                VideoOptionDialogFragment().show(requireFragmentManager(), TAG)
+            }
+        }
+
+        private fun setThumbnail(imageView: ImageView, uri: Uri?) {
+            if (uri != null)
+                Glide.with(imageView.context)
+                    .load(uri)
+                    .placeholder(R.drawable.ic_add_to_photos_grey_80dp)
+                    .error(R.drawable.ic_sentiment_dissatisfied_grey_24dp)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .transform(CenterCrop(), RoundedCorners(8))
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .listener(null)
+                    .into(imageView)
+        }
+    }
+
+    inner class SpinnerAdapter(private val items: ArrayList<String>): BaseAdapter() {
 
         private val inflater =
             (activity as MainActivity).getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -481,13 +517,13 @@ class WritingFragment : Fragment() {
             } else
                 holder = convertView.tag as ViewHolder
 
-            holder.textView.text = contentCategories[position]
+            holder.textView.text = items[position]
 
             return holder.textView
         }
 
         override fun getItem(position: Int): Any {
-            return contentCategories[position]
+            return items[position]
         }
 
         // Unused
@@ -496,7 +532,7 @@ class WritingFragment : Fragment() {
         }
 
         override fun getCount(): Int {
-            return contentCategories.count()
+            return items.count()
         }
 
         inner class ViewHolder {
@@ -509,10 +545,5 @@ class WritingFragment : Fragment() {
 
         const val ACTION_FROM_WRITING_FRAGMENT = "action_from_writing_fragment"
         const val KEY_CHANNELS = "key_channels"
-
-        private enum class ImageSource {
-            DEVICE,
-            YOUTUBE
-        }
     }
 }

@@ -1,7 +1,5 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -14,10 +12,8 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.ErrorHandler
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.ResponseFailedException
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.VideoModel
-import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import kotlinx.android.synthetic.main.fragment_youtube_videos.*
 import kotlinx.android.synthetic.main.fragment_youtube_videos.view.*
 import kotlinx.android.synthetic.main.item_view_video.view.*
@@ -52,7 +48,7 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
             }
         } else {
             ErrorHandler.errorHandling(requireContext(), Exception("channel id not found"),
-                Throwable(), getString(R.string.channel_id_not_found))
+                getString(R.string.channel_id_not_found))
         }
         return view
     }
@@ -86,7 +82,7 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
             val okHttpClient = OkHttpClient()
             okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                    ErrorHandler.errorHandling(requireContext(), e,
                         getString(R.string.failed_to_load_videos))
                 }
 
@@ -96,13 +92,13 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
                             val videoIds = youTubeDataApi.getVideoIdsFromResponse(response, true)
                             setVideosByIds(videoIds.joinToString(separator = ","))
                         } catch (e: Exception) {
-                            ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                            ErrorHandler.errorHandling(requireContext(), e,
                                 getString(R.string.failed_to_load_videos))
                         }
                     } else
                         ErrorHandler.errorHandling(requireContext(),
                             ResponseFailedException("failed to load channel", response),
-                            Throwable(), getString(R.string.failed_to_load_videos))
+                            getString(R.string.failed_to_load_videos))
                 }
             })
         }
@@ -112,7 +108,7 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
             val okHttpClient = OkHttpClient()
             okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                    ErrorHandler.errorHandling(requireContext(), e,
                         getString(R.string.failed_to_load_videos))
                 }
 
@@ -123,13 +119,13 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
                                 youTubeDataApi.getVideoIdsFromResponse(response, false)
                             setVideosByIds(videoIds.joinToString(separator = ","))
                         } catch (e: Exception) {
-                            ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                            ErrorHandler.errorHandling(requireContext(), e,
                                 getString(R.string.failed_to_load_videos))
                         }
                     } else
                         ErrorHandler.errorHandling(requireContext(),
                             ResponseFailedException("failed to load videos" ,response),
-                            Throwable(), getString(R.string.failed_to_load_videos))
+                            getString(R.string.failed_to_load_videos))
                 }
             })
         }
@@ -140,7 +136,7 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
             okHttpClient.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     ErrorHandler.errorHandling(requireContext(),
-                        e, Throwable(), getString(R.string.failed_to_load_videos))
+                        e, getString(R.string.failed_to_load_videos))
                 }
 
                 override fun onResponse(call: Call, response: Response) {
@@ -152,7 +148,7 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
                             }
                         } catch (e: Exception) {
                             ErrorHandler.errorHandling(requireContext(),
-                                e, Throwable(), getString(R.string.failed_to_load_videos))
+                                e, getString(R.string.failed_to_load_videos))
                         }
                     }
                 }
@@ -183,14 +179,8 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
             loadImage(holder.view.image_view, video.thumbnailUri)
 
             holder.view.setOnClickListener {
-                if (MainActivity.currentUser?.channelIds?.contains(video.channelId)!!) {
-                    val intent = Intent()
-                    intent.putExtra(KEY_THUMBNAIL_URI, video.thumbnailUri)
-                    intent.putExtra(KEY_VIDEO_ID, video.videoId)
-                    requireActivity().setResult(Activity.RESULT_OK, intent)
-                    requireActivity().finish()
-                } else
-                    showToast(requireContext(), getString(R.string.only_videos_uploaded_by_you_can_be_registered))
+                SelectRegisterOrPlayVideoDialogFragment(video)
+                    .show(requireActivity().supportFragmentManager, tag)
             }
         }
 
@@ -207,6 +197,6 @@ class YouTubeVideosFragment(private val sourceId: String? = null,
         private const val TAG = "YouTubeVideosFragment"
 
         const val KEY_THUMBNAIL_URI = "key_thumbnail_uri"
-        const val KEY_VIDEO_ID = "key_video_id"
+        const val KEY_VIDEO = "key_video"
     }
 }

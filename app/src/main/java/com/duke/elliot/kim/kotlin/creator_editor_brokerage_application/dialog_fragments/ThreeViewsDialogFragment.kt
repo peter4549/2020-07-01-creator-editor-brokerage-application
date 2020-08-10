@@ -5,17 +5,19 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
+import kotlinx.android.synthetic.main.fragment_recycler_view_dialog.view.*
 
-interface OnButtonClickListeners {
+interface OnSetViews {
     fun setTitle(text: String)
     fun setFirstButton(text: String, drawableResourceId: Int?, onClickListener: View.OnClickListener?)
     fun setSecondButton(text: String, drawableResourceId: Int?, onClickListener: View.OnClickListener?)
     fun setThirdButton(text: String, drawableResourceId: Int?, onClickListener: View.OnClickListener?)
 }
 
-open class ThreeButtonsDialogFragment: DialogFragment(), OnButtonClickListeners {
+open class ThreeViewsDialogFragment: DialogFragment(), OnSetViews {
 
     private lateinit var textViewTitle: TextView
     private lateinit var buttonFirst: Button
@@ -23,23 +25,25 @@ open class ThreeButtonsDialogFragment: DialogFragment(), OnButtonClickListeners 
     private lateinit var buttonThird: Button
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = Dialog(requireContext())
+        val builder = AlertDialog.Builder(requireContext())
+        val view = requireActivity().layoutInflater.inflate(R.layout.dialog_fragment_three_vertical_buttons, null)
+        builder.setView(view)
 
-        dialog.setContentView(R.layout.dialog_fragment_three_vertical_buttons)
+        buttonFirst = view.findViewById(R.id.button_first)
+        buttonSecond = view.findViewById(R.id.button_second)
+        buttonThird = view.findViewById(R.id.button_third)
+        textViewTitle = view.findViewById(R.id.text_view_title)
 
-        buttonFirst = dialog.findViewById(R.id.button_first)
-        buttonSecond = dialog.findViewById(R.id.button_second)
-        buttonThird = dialog.findViewById(R.id.button_third)
-        textViewTitle = dialog.findViewById(R.id.text_view_title)
-
-        return dialog
+        return builder.create()
     }
 
     override fun setTitle(text: String) {
+        textViewTitle.visibility = View.VISIBLE
         textViewTitle.text = text
     }
 
     override fun setFirstButton(text: String, drawableResourceId: Int?, onClickListener: View.OnClickListener?) {
+        buttonFirst.visibility = View.VISIBLE
         buttonFirst.text = text
         buttonFirst.setOnClickListener(onClickListener)
 
@@ -48,6 +52,7 @@ open class ThreeButtonsDialogFragment: DialogFragment(), OnButtonClickListeners 
     }
 
     override fun setSecondButton(text: String, drawableResourceId: Int?, onClickListener: View.OnClickListener?) {
+        buttonSecond.visibility = View.VISIBLE
         buttonSecond.text = text
         buttonSecond.setOnClickListener(onClickListener)
 
@@ -56,6 +61,7 @@ open class ThreeButtonsDialogFragment: DialogFragment(), OnButtonClickListeners 
     }
 
     override fun setThirdButton(text: String, drawableResourceId: Int?, onClickListener: View.OnClickListener?) {
+        buttonThird.visibility = View.VISIBLE
         buttonThird.text = text
         buttonThird.setOnClickListener(onClickListener)
 

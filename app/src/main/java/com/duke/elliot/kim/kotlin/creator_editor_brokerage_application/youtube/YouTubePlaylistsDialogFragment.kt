@@ -60,7 +60,7 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
             val okHttpClient = OkHttpClient()
             okHttpClient.newCall(request).enqueue(object: Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                    ErrorHandler.errorHandling(requireContext(), e,
                         getString(R.string.failed_to_load_playlists))
                 }
 
@@ -72,12 +72,12 @@ class PlaylistsDialogFragment(private val channelId: String? = null): DialogFrag
                                 notifyDataSetChanged()
                             }
                         } catch (e: Exception) {
-                            ErrorHandler.errorHandling(requireContext(), e, Throwable(),
+                            ErrorHandler.errorHandling(requireContext(), e,
                                 getString(R.string.failed_to_load_playlists))
                         }
                     } else {
                         ErrorHandler.errorHandling(requireContext(), ResponseFailedException("response failed", response),
-                            Throwable(), getString(R.string.failed_to_load_playlists))
+                            getString(R.string.failed_to_load_playlists))
                     }
                 }
             })

@@ -10,12 +10,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.BaseAdapter
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
@@ -67,19 +69,6 @@ class MyInfoFragment : Fragment() {
         (activity as MainActivity).setSupportActionBar(view.toolbar)
         (activity as MainActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        if (MainActivity.currentUser != null) {
-            if (MainActivity.currentUser!!.profileImageFileDownloadUri.isNotBlank())
-                loadProfileImage(view, MainActivity.currentUser!!.profileImageFileDownloadUri)
-
-            verified = MainActivity.currentUser!!.verified
-
-            view.edit_text_name.setText(MainActivity.currentUser!!.name)
-            view.edit_text_public_name.setText(MainActivity.currentUser!!.publicName)
-            view.edit_text_phone_number.setText(MainActivity.currentUser!!.phoneNumber)
-            view.edit_text_pr.setText(MainActivity.currentUser!!.pr)
-            view.button_partners_registration.visibility = View.VISIBLE
-        }
-
         val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -88,6 +77,22 @@ class MyInfoFragment : Fragment() {
         googleSignInClient = GoogleSignIn.getClient(requireContext(), googleSignInOptions)
 
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (MainActivity.currentUser != null) {
+            if (MainActivity.currentUser!!.profileImageFileDownloadUri.isNotBlank())
+                loadProfileImage(image_view_profile, MainActivity.currentUser!!.profileImageFileDownloadUri)
+
+            verified = MainActivity.currentUser!!.verified
+
+            edit_text_name.setText(MainActivity.currentUser!!.name)
+            edit_text_public_name.setText(MainActivity.currentUser!!.publicName)
+            edit_text_phone_number.setText(MainActivity.currentUser!!.phoneNumber)
+            edit_text_pr.setText(MainActivity.currentUser!!.pr)
+            button_partners_registration.visibility = View.VISIBLE
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -175,15 +180,15 @@ class MyInfoFragment : Fragment() {
         edit_text_pr.text.clear()
     }
 
-    private fun loadProfileImage(view: View, profileImageFileUri: String) {
-        Glide.with(view.image_view_profile.context)
+    private fun loadProfileImage(imageView: ImageView, profileImageFileUri: String) {
+        Glide.with(imageView.context)
             .load(profileImageFileUri)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .skipMemoryCache(true)
-            .error(R.drawable.ic_chat_64dp)
+            .placeholder(R.drawable.ic_add_to_photos_grey_80dp)
             .transition(DrawableTransitionOptions.withCrossFade())
             .transform(CircleCrop())
-            .into(view.image_view_profile)
+            .into(imageView)
     }
 
     private fun openGallery() {
@@ -199,9 +204,9 @@ class MyInfoFragment : Fragment() {
             .load(uri)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .skipMemoryCache(true)
-            .error(R.drawable.ic_chat_64dp)
+            .placeholder(R.drawable.ic_add_to_photos_grey_80dp)
             .transition(DrawableTransitionOptions.withCrossFade())
-            .transform(CircleCrop())
+            .transform(CircleCrop(), RoundedCorners(8))
             .into(image_view_profile)
         profileImageFileUri = uri
     }
@@ -342,7 +347,7 @@ class MyInfoFragment : Fragment() {
             partner.occupation = MainActivity.currentUser!!.occupation
             partner.profileImageUri = MainActivity.currentUser!!.profileImageFileDownloadUri
             partner.publicName = MainActivity.currentUser!!.publicName
-            partner.stars = MainActivity.currentUser!!.stars.count()
+            partner.stars = MainActivity.currentUser!!.stars
             partner.statusMessage = "Status Message"
             partner.uid = MainActivity.currentUser!!.id
 

@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         //noinspection GradleDependency
-        classpath 'com.android.tools.build:gradle:3.6.3'  // Do not change without obvious reasons
+        classpath 'com.android.tools.build:gradle:4.0.1'  // Do not change without obvious reasons
         //noinspection GradleDependency
         classpath 'com.google.gms:google-services:4.3.3'  // Do not change without obvious reasons
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"

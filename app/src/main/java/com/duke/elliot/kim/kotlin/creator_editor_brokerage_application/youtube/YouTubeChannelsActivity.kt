@@ -1,5 +1,6 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube
 
+import android.app.Activity
 import android.app.PendingIntent
 import android.content.*
 import android.graphics.BitmapFactory
@@ -29,8 +30,10 @@ import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.ResponseF
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.adapters.LayoutManagerWrapper
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.COLLECTION_USERS
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.REQUEST_CODE_YOUTUBE_PLAYER
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.ChannelModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.UserModel
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.VideoModel
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.services.CheckUrlJobIntentService
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.showToast
 import com.google.firebase.firestore.FirebaseFirestore
@@ -111,6 +114,31 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         )
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                REQUEST_CODE_YOUTUBE_PLAYER -> {
+                    val video =
+                        data?.getSerializableExtra(SelectRegisterOrPlayVideoDialogFragment.KEY_VIDEO)
+                                as VideoModel
+                    registerVideo(video)
+                }
+            }
+        }
+    }
+
+    fun registerVideo(video: VideoModel) {
+        if (MainActivity.currentUser?.channelIds?.contains(video.channelId)!!) {
+            val intent = Intent()
+            intent.putExtra(YouTubeVideosFragment.KEY_VIDEO, video)
+            setResult(Activity.RESULT_OK, intent)
+            finish()
+        } else
+            showToast(this, getString(R.string.only_videos_uploaded_by_you_can_be_registered))
+    }
+
     override fun onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
         unbindCustomTabsService()
@@ -153,8 +181,8 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                 CUSTOM_TAB_PACKAGE_NAME, connection!!))
             println("$TAG: custom tabs service connected")
         else
-            ErrorHandler.errorHandling(this, Exception("custom tabs service connection failed"),
-                Throwable(), getString(R.string.authorization_server_connection_failed))
+            ErrorHandler.errorHandling(this,
+                Exception("custom tabs service connection failed"), getString(R.string.authorization_server_connection_failed))
     }
 
     private fun unbindCustomTabsService() {
@@ -167,10 +195,13 @@ class YouTubeChannelsActivity : AppCompatActivity() {
     }
 
     private fun showGuideToast() {
+        /*
         val toast = Toast(this)
         toast.setGravity(Gravity.CENTER, 0, 0)
         toast.duration = Toast.LENGTH_LONG
         toast.show()
+
+         */
     }
 
     private fun createPendingIntent() : PendingIntent {
@@ -184,7 +215,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                ErrorHandler.errorHandling(this@YouTubeChannelsActivity, e, Throwable(),
+                ErrorHandler.errorHandling(this@YouTubeChannelsActivity, e,
                     getString(R.string.failed_to_get_access_token))
             }
 
@@ -196,7 +227,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                 } else
                     ErrorHandler.errorHandling(this@YouTubeChannelsActivity,
                         ResponseFailedException("response failed, failed to get access token", response),
-                        Throwable(), getString(R.string.failed_to_get_access_token))
+                            getString(R.string.failed_to_get_access_token))
             }
         })
     }
@@ -206,7 +237,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         okHttpClient.newCall(youTubeDataApi.getChannelIdsRequestByAccessToken(accessToken))
             .enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    ErrorHandler.errorHandling(this@YouTubeChannelsActivity, e, Throwable(),
+                    ErrorHandler.errorHandling(this@YouTubeChannelsActivity, e,
                         getString(R.string.failed_to_get_access_token))
                 }
 
@@ -227,11 +258,11 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                             }
                         } catch (e: Exception) {
                             ErrorHandler.errorHandling(this@YouTubeChannelsActivity, e,
-                                Throwable(), getString(R.string.failed_to_load_channels))
+                                getString(R.string.failed_to_load_channels))
                         }
                     } else
                         ErrorHandler.errorHandling(this@YouTubeChannelsActivity,
-                            Exception("failed to get response"), Throwable(), getString(R.string.failed_to_load_channels))
+                            Exception("failed to get response"), getString(R.string.failed_to_load_channels))
                 }
             })
     }
@@ -247,7 +278,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                     println("$TAG: channel ids updated")
                 }
                 else
-                    ErrorHandler.errorHandling(this, task.exception, Throwable(),
+                    ErrorHandler.errorHandling(this, task.exception,
                         getString(R.string.failed_to_update_channel_ids))
             }
     }
@@ -276,7 +307,8 @@ class YouTubeChannelsActivity : AppCompatActivity() {
         private var channels = mutableListOf<ChannelModel>()
 
         init {
-            insertChannelsByIds(channelIds)
+            if (channelIds.isNotEmpty())
+                insertChannelsByIds(channelIds)
         }
 
         private fun insertChannelsByIds(channelIds: MutableList<String>) {
@@ -285,7 +317,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
             var channelCount = 0
             okHttpClient.newCall(request).enqueue(object: Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    ErrorHandler.errorHandling(this@YouTubeChannelsActivity, e, Throwable(),
+                    ErrorHandler.errorHandling(this@YouTubeChannelsActivity, e,
                         getString(R.string.failed_to_load_channels))
                 }
 
@@ -309,21 +341,20 @@ class YouTubeChannelsActivity : AppCompatActivity() {
 
                             if (totalResults == 0.0)
                                 ErrorHandler.errorHandling(this@YouTubeChannelsActivity,
-                                    e, Throwable(), getString(R.string.channels_not_found))
+                                    e, getString(R.string.channels_not_found))
                             else{
                                 val notFoundChannelsCount = user.channelIds.count() - channelCount
                                 ErrorHandler.errorHandling(this@YouTubeChannelsActivity,
-                                    e, Throwable(), notFoundChannelsCount.toString() + getString(R.string.n_channels_not_found))
+                                    e, notFoundChannelsCount.toString() + getString(R.string.n_channels_not_found))
                             }
                         } catch (e: Exception) {
                             ErrorHandler.errorHandling(this@YouTubeChannelsActivity, e,
-                                Throwable(), getString(R.string.failed_to_load_channels))
+                                getString(R.string.failed_to_load_channels))
                         }
                     } else {
                         ErrorHandler.errorHandling(
                             this@YouTubeChannelsActivity,
                             ResponseFailedException("failed to load channels", response),
-                            Throwable(),
                             getString(R.string.failed_to_load_channels)
                         )
                     }
@@ -338,7 +369,7 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                 override fun onFailure(call: Call, e: IOException) {
                     ErrorHandler.errorHandling(this@YouTubeChannelsActivity,
                         Exception("failed to register channel"),
-                        Throwable(), getString(R.string.failed_to_register_channel))
+                        getString(R.string.failed_to_register_channel))
                 }
 
                 override fun onResponse(call: Call, response: Response) {
@@ -351,13 +382,11 @@ class YouTubeChannelsActivity : AppCompatActivity() {
                         } catch (e: Exception) {
                             ErrorHandler.errorHandling(this@YouTubeChannelsActivity,
                                 e,
-                                Throwable(),
                                 getString(R.string.failed_to_register_channel))
                         }
                     } else {
                         ErrorHandler.errorHandling(this@YouTubeChannelsActivity,
                             Exception("failed to register channel"),
-                            Throwable(),
                             getString(R.string.failed_to_register_channel))
                     }
                 }

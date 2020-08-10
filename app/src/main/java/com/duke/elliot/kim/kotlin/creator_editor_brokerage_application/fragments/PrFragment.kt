@@ -1,19 +1,28 @@
 package com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.fragments
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.R
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.activities.MainActivity.Companion.CHAT_FRAGMENT_TAG
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.constants.*
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.hashString
 import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.model.*
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube.SelectRegisterOrPlayVideoDialogFragment
+import com.duke.elliot.kim.kotlin.creator_editor_brokerage_application.youtube.YouTubePlayerActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_pr.*
@@ -42,7 +51,18 @@ class PrFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_pr, container, false)
 
+        view.text_view_title.text = pr.title
         view.text_view_public_name.text = pr.publisherName
+        view.text_view_occupation.text = pr.occupation
+        view.text_view_categories.text = pr.categories.joinToString()
+
+        val videos = pr.youtubeVideos
+        if (videos[0] != null)
+            setImageViews(view.image_view_work_1, videos[0]!!.toVideoModel())
+        if (videos[1] != null)
+            setImageViews(view.image_view_work_2, videos[1]!!.toVideoModel())
+        if (videos[2] != null)
+            setImageViews(view.image_view_work_3, videos[2]!!.toVideoModel())
 
         fabOpenAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.anim_fab_open)
         fabCloseAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.anim_fab_close)
@@ -50,6 +70,29 @@ class PrFragment : Fragment() {
         fabRotateBackwardAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.anim_rotate_backward)
 
         return view
+    }
+
+    private fun setImageViews(imageView: ImageView, video: VideoModel) {
+        Glide.with(imageView.context)
+            .load(video.thumbnailUri)
+            .placeholder(R.drawable.ic_add_to_photos_grey_80dp)
+            .error(R.drawable.ic_sentiment_dissatisfied_grey_24dp)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .transform(CenterCrop(), RoundedCorners(8))
+            .into(imageView)
+
+        imageView.setOnClickListener {
+            startYouTubePlayerActivity(video)
+        }
+    }
+
+    private fun startYouTubePlayerActivity(video: VideoModel) {
+        val intent = Intent(requireActivity(), YouTubePlayerActivity::class.java)
+        intent.putExtra(KEY_IS_FROM_PR_FRAGMENT, true)
+        intent.putExtra(SelectRegisterOrPlayVideoDialogFragment.KEY_VIDEO, video)
+        requireActivity().startActivityForResult(intent, REQUEST_CODE_YOUTUBE_PLAYER)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -188,5 +231,7 @@ class PrFragment : Fragment() {
 
         const val ONE_EXISTING_CHAT_ROOM = 0
         const val SEVERAL_EXISTING_CHAT_ROOM = 1
+
+        const val KEY_IS_FROM_PR_FRAGMENT = "key_is_from_pr_fragment"
     }
 }
